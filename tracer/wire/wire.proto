@@ -1,0 +1,10 @@
+syntax = "proto3";
+package wavefront_go.wire;
+option go_package = "wire";
+
+message TracerState {
+  string trace_id = 1;
+  string span_id = 2;
+  bool    sampled = 3;
+  map<string, string> baggage_items = 4;
+}
