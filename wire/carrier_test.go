@@ -3,8 +3,8 @@ package wire_test
 import (
 	"testing"
 
-	"github.com/wavefronthq/wavefront-opentracing-sdk-go/tracer"
-	"github.com/wavefronthq/wavefront-opentracing-sdk-go/tracer/wire"
+	"github.com/wavefronthq/wavefront-opentracing-sdk-go"
+	"github.com/wavefronthq/wavefront-opentracing-sdk-go/wire"
 )
 
 func TestProtobufCarrier(t *testing.T) {

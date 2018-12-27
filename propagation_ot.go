@@ -7,8 +7,8 @@ import (
 	"strings"
 
 	"github.com/gogo/protobuf/proto"
-	"github.com/wavefronthq/wavefront-opentracing-sdk-go/tracer/wire"
 	opentracing "github.com/opentracing/opentracing-go"
+	"github.com/wavefronthq/wavefront-opentracing-sdk-go/wire"
 )
 
 type textMapPropagator struct {
