@@ -1,4 +1,4 @@
-# wavefront-opentracing-sdk-go [![travis build status](https://travis-ci.com/wavefrontHQ/wavefront-opentracing-sdk-python.svg?branch=master)](https://travis-ci.com/wavefrontHQ/wavefront-opentracing-sdk-go) [![OpenTracing Badge](https://img.shields.io/badge/OpenTracing-enabled-blue.svg)](http://opentracing.io)
+# wavefront-opentracing-sdk-go [![travis build status](https://travis-ci.com/wavefrontHQ/wavefront-opentracing-sdk-go.svg?branch=master)](https://travis-ci.com/wavefrontHQ/wavefront-opentracing-sdk-go) [![OpenTracing Badge](https://img.shields.io/badge/OpenTracing-enabled-blue.svg)](http://opentracing.io)
 
 The Wavefront by VMware OpenTracing SDK for GO is a library that provides open tracing support for Wavefront.
 
