@@ -117,9 +117,9 @@ func (p *binaryPropagator) Inject(
 	}
 
 	state := wire.TracerState{}
-	state.TraceId = sc.TraceID
-	state.SpanId = sc.SpanID
-	state.Sampled = sc.Sampled
+	state.TraceId = &sc.TraceID
+	state.SpanId = &sc.SpanID
+	state.Sampled = &sc.Sampled
 	state.BaggageItems = sc.Baggage
 
 	b, err := proto.Marshal(&state)
@@ -167,9 +167,9 @@ func (p *binaryPropagator) Extract(
 	}
 
 	return SpanContext{
-		TraceID: ctx.TraceId,
-		SpanID:  ctx.SpanId,
-		Sampled: ctx.Sampled,
+		TraceID: *ctx.TraceId,
+		SpanID:  *ctx.SpanId,
+		Sampled: *ctx.Sampled,
 		Baggage: ctx.BaggageItems,
 	}, nil
 }
