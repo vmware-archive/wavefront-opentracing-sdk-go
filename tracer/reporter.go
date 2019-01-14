@@ -31,8 +31,8 @@ type WavefrontSpanReporter struct {
 	application ApplicationTags
 }
 
-// SpanReporter returns a WavefrontSpanReporter for the given `sender`.
-func SpanReporter(sender wf.Sender, application ApplicationTags) *WavefrontSpanReporter {
+// NewSpanReporter returns a WavefrontSpanReporter for the given `sender`.
+func NewSpanReporter(sender wf.Sender, application ApplicationTags) *WavefrontSpanReporter {
 	return &WavefrontSpanReporter{
 		sender:      sender,
 		Source:      hostname(),
