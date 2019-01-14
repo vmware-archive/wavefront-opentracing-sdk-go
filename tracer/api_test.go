@@ -5,7 +5,7 @@ import (
 	"time"
 
 	ot "github.com/opentracing/opentracing-go"
-	"github.com/opentracing/opentracing-go/harness"
+	// "github.com/opentracing/opentracing-go/harness"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -32,13 +32,16 @@ func TestInMemoryRecorderSpans(t *testing.T) {
 	assert.Equal(t, []RawSpan{}, recorder.GetSampledSpans())
 }
 
-func TestAPICheck(t *testing.T) {
-	harness.RunAPIChecks(t,
-		newTracer,
-		harness.CheckEverything(),
-		harness.UseProbe(apiCheckProbe{}),
-	)
-}
+// TODO: Un-comment when the "github.com/opentracing/opentracing-go/harness"
+// package is available on a release
+//
+// func TestAPICheck(t *testing.T) {
+// 	harness.RunAPIChecks(t,
+// 		newTracer,
+// 		harness.CheckEverything(),
+// 		harness.UseProbe(apiCheckProbe{}),
+// 	)
+// }
 
 // implements harness.APICheckProbe
 type apiCheckProbe struct{}

@@ -1,7 +1,0 @@
-package: github.com/wavefronthq/wavefront-opentracing-sdk-go
-import:
-- package: github.com/opentracing/opentracing-go
-  version: ^1.0.2
-- package: github.com/wavefronthq/wavefront-sdk-go
-  version: ^0.9.0
-- package: github.com/tuvistavie/securerandom
