@@ -8,4 +8,4 @@
 
 [[constraint]]
   name = "github.com/wavefronthq/wavefront-sdk-go"
-  version = "0.9.1"
+  revision = "b7a66ceb0066049f1dbc792349f6844dbf779833"
