@@ -18,15 +18,15 @@ func newTracer() (tracer ot.Tracer, closer func()) {
 func TestInMemoryReporterSpans(t *testing.T) {
 	reporter := NewInMemoryReporter()
 	var apiReporter SpanReporter = reporter
-	span := rawSpan{
+	span := RawSpan{
 		Context:   SpanContext{},
 		Operation: "test-span",
 		Start:     time.Now(),
 		Duration:  -1,
 	}
 	apiReporter.ReportSpan(span)
-	assert.Equal(t, []rawSpan{span}, reporter.getSpans())
-	assert.Equal(t, []rawSpan{}, reporter.getSampledSpans())
+	assert.Equal(t, []RawSpan{span}, reporter.getSpans())
+	assert.Equal(t, []RawSpan{}, reporter.getSampledSpans())
 }
 
 // TODO: Un-comment when the "github.com/opentracing/opentracing-go/harness"

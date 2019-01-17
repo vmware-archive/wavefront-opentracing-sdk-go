@@ -8,12 +8,12 @@ import (
 
 // SpanReporter record completed Spans
 type SpanReporter interface {
-	ReportSpan(span rawSpan)
+	ReportSpan(span RawSpan)
 }
 
 // Sampler control if a span shold be sampled
 type Sampler interface {
-	ShouldSample(span rawSpan) bool
+	ShouldSample(span RawSpan) bool
 }
 
 // WavefrontTracer implements the `Tracer` interface.

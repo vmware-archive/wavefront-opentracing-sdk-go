@@ -10,7 +10,7 @@ import (
 // via reporter.getSpans(). It is primarily intended for testing purposes.
 type InMemorySpanReporter struct {
 	sync.RWMutex
-	spans []rawSpan
+	spans []RawSpan
 }
 
 // NewInMemoryReporter creates new InMemorySpanReporter
@@ -19,26 +19,26 @@ func NewInMemoryReporter() *InMemorySpanReporter {
 }
 
 // ReportSpan implements the respective method of SpanReporter.
-func (r *InMemorySpanReporter) ReportSpan(span rawSpan) {
+func (r *InMemorySpanReporter) ReportSpan(span RawSpan) {
 	r.Lock()
 	defer r.Unlock()
 	r.spans = append(r.spans, span)
 }
 
 // getSpans returns a copy of the array of spans accumulated so far.
-func (r *InMemorySpanReporter) getSpans() []rawSpan {
+func (r *InMemorySpanReporter) getSpans() []RawSpan {
 	r.RLock()
 	defer r.RUnlock()
-	spans := make([]rawSpan, len(r.spans))
+	spans := make([]RawSpan, len(r.spans))
 	copy(spans, r.spans)
 	return spans
 }
 
 // getSampledSpans returns a slice of spans accumulated so far which were sampled.
-func (r *InMemorySpanReporter) getSampledSpans() []rawSpan {
+func (r *InMemorySpanReporter) getSampledSpans() []RawSpan {
 	r.RLock()
 	defer r.RUnlock()
-	spans := make([]rawSpan, 0, len(r.spans))
+	spans := make([]RawSpan, 0, len(r.spans))
 	for _, span := range r.spans {
 		if span.Context.Sampled {
 			spans = append(spans, span)
@@ -58,6 +58,6 @@ func (r *InMemorySpanReporter) Reset() {
 type CountingReporter int32
 
 // ReportSpan implements the respective method of SpanReporter.
-func (c *CountingReporter) ReportSpan(r rawSpan) {
+func (c *CountingReporter) ReportSpan(r RawSpan) {
 	atomic.AddInt32((*int32)(c), 1)
 }

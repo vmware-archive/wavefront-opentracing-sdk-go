@@ -14,11 +14,12 @@ import (
 type spanImpl struct {
 	tracer     *WavefrontTracer
 	sync.Mutex // protects the fields below
-	raw        rawSpan
+	raw        RawSpan
 }
 
-type rawSpan struct {
-	// Those recording the rawSpan should also record the contents of its
+// RawSpan holds the span information
+type RawSpan struct {
+	// Those recording the RawSpan should also record the contents of its
 	// SpanContext.
 	Context SpanContext
 
@@ -49,7 +50,7 @@ var spanPool = &sync.Pool{New: func() interface{} {
 
 func (s *spanImpl) reset() {
 	s.tracer = nil
-	s.raw = rawSpan{
+	s.raw = RawSpan{
 		Context: SpanContext{},
 	}
 }
