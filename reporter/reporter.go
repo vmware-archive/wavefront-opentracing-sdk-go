@@ -5,30 +5,15 @@ import (
 	"os"
 
 	"github.com/wavefronthq/wavefront-opentracing-sdk-go/tracer"
+	"github.com/wavefronthq/wavefront-sdk-go/application"
 	wf "github.com/wavefronthq/wavefront-sdk-go/senders"
 )
-
-type ApplicationTags struct {
-	application string
-	service     string
-	Cluster     string
-	Shard       string
-	tags        map[string]string
-}
-
-func NewApplicationTags(app, serv string) ApplicationTags {
-	return ApplicationTags{
-		application: app,
-		service:     serv,
-		tags:        make(map[string]string, 0),
-	}
-}
 
 // WavefrontSpanReporter implements the wavefront.Reporter interface.
 type WavefrontSpanReporter struct {
 	source      string
 	sender      wf.Sender
-	application ApplicationTags
+	application application.Tags
 }
 
 // Option allow WavefrontSpanReporter customization
@@ -41,8 +26,8 @@ func Source(source string) Option {
 	}
 }
 
-// Nwe returns a WavefrontSpanReporter for the given `sender`.
-func New(sender wf.Sender, application ApplicationTags, setters ...Option) *WavefrontSpanReporter {
+// New returns a WavefrontSpanReporter for the given `sender`.
+func New(sender wf.Sender, application application.Tags, setters ...Option) *WavefrontSpanReporter {
 	r := &WavefrontSpanReporter{
 		sender:      sender,
 		source:      hostname(),
@@ -66,11 +51,8 @@ func hostname() string {
 func (t *WavefrontSpanReporter) ReportSpan(span tracer.RawSpan) {
 	allTags := make(map[string]string)
 
-	allTags["application"] = t.application.application
-	allTags["service"] = t.application.service
-
-	for k, v := range t.application.tags {
-		allTags[k] = fmt.Sprintf("%v", v)
+	for k, v := range t.application.Map() {
+		allTags[k] = v
 	}
 
 	for k, v := range span.Context.Baggage {
