@@ -1,4 +1,4 @@
-package recorder
+package reporter
 
 import (
 	"fmt"
@@ -24,7 +24,7 @@ func NewApplicationTags(app, serv string) ApplicationTags {
 	}
 }
 
-// WavefrontSpanReporter implements the wavefront.Recorder interface.
+// WavefrontSpanReporter implements the wavefront.Reporter interface.
 type WavefrontSpanReporter struct {
 	source      string
 	sender      wf.Sender
@@ -41,8 +41,8 @@ func Source(source string) Option {
 	}
 }
 
-// NewSpanReporter returns a WavefrontSpanReporter for the given `sender`.
-func NewSpanReporter(sender wf.Sender, application ApplicationTags, setters ...Option) *WavefrontSpanReporter {
+// Nwe returns a WavefrontSpanReporter for the given `sender`.
+func New(sender wf.Sender, application ApplicationTags, setters ...Option) *WavefrontSpanReporter {
 	r := &WavefrontSpanReporter{
 		sender:      sender,
 		source:      hostname(),
@@ -57,13 +57,13 @@ func NewSpanReporter(sender wf.Sender, application ApplicationTags, setters ...O
 func hostname() string {
 	name, err := os.Hostname()
 	if err != nil {
-		name = "localhost"
+		name = "wavefront-tracer-go"
 	}
 	return name
 }
 
-// RecordSpan complies with the tracer.Recorder interface.
-func (t *WavefrontSpanReporter) RecordSpan(span tracer.RawSpan) {
+// ReportSpan complies with the tracer.Reporter interface.
+func (t *WavefrontSpanReporter) ReportSpan(span tracer.RawSpan) {
 	allTags := make(map[string]string)
 
 	allTags["application"] = t.application.application

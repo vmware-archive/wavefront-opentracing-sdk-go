@@ -31,7 +31,7 @@ func executeOps(sp opentracing.Span, numEvent, numTag, numItems int) {
 }
 
 func benchmarkWithOps(b *testing.B, numEvent, numTag, numItems int) {
-	var r CountingRecorder
+	var r CountingReporter
 	t := New(&r)
 	benchmarkWithOpsAndCB(b, func() opentracing.Span {
 		return t.StartSpan("test")
@@ -77,7 +77,7 @@ func BenchmarkSpan_100BaggageItems(b *testing.B) {
 }
 
 func benchmarkInject(b *testing.B, format opentracing.BuiltinFormat, numItems int) {
-	var r CountingRecorder
+	var r CountingReporter
 	tracer := New(&r)
 	sp := tracer.StartSpan("testing")
 	executeOps(sp, 0, 0, numItems)
@@ -100,7 +100,7 @@ func benchmarkInject(b *testing.B, format opentracing.BuiltinFormat, numItems in
 }
 
 func benchmarkExtract(b *testing.B, format opentracing.BuiltinFormat, numItems int) {
-	var r CountingRecorder
+	var r CountingReporter
 	tracer := New(&r)
 	sp := tracer.StartSpan("testing")
 	executeOps(sp, 0, 0, numItems)

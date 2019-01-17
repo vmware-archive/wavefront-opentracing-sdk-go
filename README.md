@@ -10,17 +10,18 @@ Go 1.9 or higher
 
 Import the senders package and create a proxy or direct sender as given below.
 
-
 ```go
 import (
   wftracer "github.com/wavefronthq/wavefront-opentracing-sdk-go/tracer"
 )
 ```
+
 ## Set Up a Tracer
 
 [Tracer](https://github.com/opentracing/specification/blob/master/specification.md#tracer) is an OpenTracing [interface](https://github.com/opentracing/opentracing-java#initialization) for creating spans and propagating them across arbitrary transports.
 
 This SDK provides a `Tracer` implementation for creating spans and sending them to Wavefront. The steps for creating a `Tracer` are:
+
 1. Create an `ApplicationTags`, which specifies metadata about your application.
 2. Create a Wavefront sender object for sending trace data to Wavefront.
 3. Create a `WavefrontSpanReporter` for reporting trace data to Wavefront.
@@ -42,6 +43,7 @@ A "Wavefront sender" is an object that implements the low-level interface for se
 * Follow the steps in [Set Up a Wavefront Sender](https://github.com/wavefrontHQ/wavefront-sdk-go#proxy-sender).
 
 Direct ingestion sample:
+
 ```go
 directCfg := &wf.DirectConfiguration{
   Server:               "https://INSTANCE.wavefront.com",
@@ -58,9 +60,11 @@ if err != nil {
 ```
 
 ### 3. Set Up a Reporter
+
 You must create a `WavefrontSpanReporter` to report trace data to Wavefront.
 
 To create a `WavefrontSpanReporter`:
+
 * Specify the Wavefront sender from [Step 2](#2-set-up-a-wavefront-sender), i.e. either `WavefrontProxyClient` or `WavefrontDirectClient`.
 * Specify the ApplicationTags from [Step 1](#1-set-up-application-tags).
 * (Optional) Specify a string that represents the source for the reported spans. If you omit the source, the host name is automatically used.
@@ -70,6 +74,7 @@ reporter := wftracer.NewSpanReporter(sender, appTags)
 ```
 
 You can change the Source tag on your spand using the `Source` Option (the hostname is used by default):
+
 ```GO
 reporter := tracer.NewSpanReporter(sender, appTags, tracer.Source("app1.foo.com"))
 ```
@@ -77,10 +82,11 @@ reporter := tracer.NewSpanReporter(sender, appTags, tracer.Source("app1.foo.com"
 #### Create a CompositeReporter (Optional)
 
 A CompositeReporter enables you to chain a WavefrontSpanReporter to another reporter, such as a ConsoleReporter. A console reporter is useful for debugging.
+
 ```GO
 wfReporter := tracer.NewSpanReporter(sender, appTags, tracer.Source("app1.foo.com"))
-clReporter := tracer.NewConsoleSpanRecorder()
-reporter := tracer.NewCompositeSpanRecorder(wfReporter, clReporter)
+clReporter := tracer.NewConsoleSpanReporter()
+reporter := tracer.NewCompositeSpanReporter(wfReporter, clReporter)
 ```
 
 ### 4. Create the WavefrontTracer
@@ -92,6 +98,7 @@ tracer := wftracer.New(reporter)
 ```
 
 ### 5. Initialize Opentrace
+
 ```GO
 opentracing.InitGlobalTracer(tracer)
 ```

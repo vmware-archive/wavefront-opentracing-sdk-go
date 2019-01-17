@@ -6,7 +6,7 @@ import "time"
 type AllwaysSample struct{}
 
 // ShouldSample allways true
-func (t AllwaysSample) ShouldSample(span RawSpan) bool {
+func (t AllwaysSample) ShouldSample(span rawSpan) bool {
 	return true
 }
 
@@ -14,7 +14,7 @@ func (t AllwaysSample) ShouldSample(span RawSpan) bool {
 type NeverSample struct{}
 
 // ShouldSample allways false
-func (t NeverSample) ShouldSample(span RawSpan) bool {
+func (t NeverSample) ShouldSample(span rawSpan) bool {
 	return false
 }
 
@@ -24,7 +24,7 @@ type DurationSampler struct {
 }
 
 // ShouldSample is span duration is bigger than Duration
-func (t DurationSampler) ShouldSample(span RawSpan) bool {
+func (t DurationSampler) ShouldSample(span rawSpan) bool {
 	return span.Duration > t.Duration
 }
 

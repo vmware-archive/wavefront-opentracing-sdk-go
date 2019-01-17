@@ -10,7 +10,7 @@ import (
 const op = "test"
 
 func TestConcurrentUsage(t *testing.T) {
-	var cr CountingRecorder
+	var cr CountingReporter
 	tracer := New(&cr)
 	var wg sync.WaitGroup
 	const num = 100
@@ -36,7 +36,7 @@ func TestConcurrentUsage(t *testing.T) {
 }
 
 func TestDisableSpanPool(t *testing.T) {
-	var cr CountingRecorder
+	var cr CountingReporter
 	tracer := New(&cr)
 
 	parent := tracer.StartSpan("parent")

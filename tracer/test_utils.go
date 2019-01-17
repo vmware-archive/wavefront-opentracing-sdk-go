@@ -5,40 +5,40 @@ import (
 	"sync/atomic"
 )
 
-// InMemorySpanRecorder is a simple thread-safe implementation of
-// SpanRecorder that stores all reported spans in memory, accessible
-// via reporter.GetSpans(). It is primarily intended for testing purposes.
-type InMemorySpanRecorder struct {
+// InMemorySpanReporter is a simple thread-safe implementation of
+// SpanReporter that stores all reported spans in memory, accessible
+// via reporter.getSpans(). It is primarily intended for testing purposes.
+type InMemorySpanReporter struct {
 	sync.RWMutex
-	spans []RawSpan
+	spans []rawSpan
 }
 
-// NewInMemoryRecorder creates new InMemorySpanRecorder
-func NewInMemoryRecorder() *InMemorySpanRecorder {
-	return new(InMemorySpanRecorder)
+// NewInMemoryReporter creates new InMemorySpanReporter
+func NewInMemoryReporter() *InMemorySpanReporter {
+	return new(InMemorySpanReporter)
 }
 
-// RecordSpan implements the respective method of SpanRecorder.
-func (r *InMemorySpanRecorder) RecordSpan(span RawSpan) {
+// ReportSpan implements the respective method of SpanReporter.
+func (r *InMemorySpanReporter) ReportSpan(span rawSpan) {
 	r.Lock()
 	defer r.Unlock()
 	r.spans = append(r.spans, span)
 }
 
-// GetSpans returns a copy of the array of spans accumulated so far.
-func (r *InMemorySpanRecorder) GetSpans() []RawSpan {
+// getSpans returns a copy of the array of spans accumulated so far.
+func (r *InMemorySpanReporter) getSpans() []rawSpan {
 	r.RLock()
 	defer r.RUnlock()
-	spans := make([]RawSpan, len(r.spans))
+	spans := make([]rawSpan, len(r.spans))
 	copy(spans, r.spans)
 	return spans
 }
 
-// GetSampledSpans returns a slice of spans accumulated so far which were sampled.
-func (r *InMemorySpanRecorder) GetSampledSpans() []RawSpan {
+// getSampledSpans returns a slice of spans accumulated so far which were sampled.
+func (r *InMemorySpanReporter) getSampledSpans() []rawSpan {
 	r.RLock()
 	defer r.RUnlock()
-	spans := make([]RawSpan, 0, len(r.spans))
+	spans := make([]rawSpan, 0, len(r.spans))
 	for _, span := range r.spans {
 		if span.Context.Sampled {
 			spans = append(spans, span)
@@ -48,16 +48,16 @@ func (r *InMemorySpanRecorder) GetSampledSpans() []RawSpan {
 }
 
 // Reset clears the internal array of spans.
-func (r *InMemorySpanRecorder) Reset() {
+func (r *InMemorySpanReporter) Reset() {
 	r.Lock()
 	defer r.Unlock()
 	r.spans = nil
 }
 
-// CountingRecorder it is primarily intended for testing purposes.
-type CountingRecorder int32
+// CountingReporter it is primarily intended for testing purposes.
+type CountingReporter int32
 
-// RecordSpan implements the respective method of SpanRecorder.
-func (c *CountingRecorder) RecordSpan(r RawSpan) {
+// ReportSpan implements the respective method of SpanReporter.
+func (c *CountingReporter) ReportSpan(r rawSpan) {
 	atomic.AddInt32((*int32)(c), 1)
 }

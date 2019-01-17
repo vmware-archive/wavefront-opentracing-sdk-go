@@ -1,4 +1,4 @@
-package recorder
+package reporter
 
 import (
 	"fmt"
@@ -10,18 +10,18 @@ import (
 	wf "github.com/wavefronthq/wavefront-sdk-go/senders"
 )
 
-// ConsoleSpanRecorder send spand to STDOUT.
-type ConsoleSpanRecorder struct {
+// ConsoleSpanReporter send spand to STDOUT.
+type ConsoleSpanReporter struct {
 	mux sync.Mutex
 }
 
-// NewConsoleSpanRecorder returns a ConsoleSpanRecorder.
-func NewConsoleSpanRecorder() tracer.SpanRecorder {
-	return &ConsoleSpanRecorder{}
+// NewConsoleSpanReporter returns a ConsoleSpanReporter.
+func NewConsoleSpanReporter() tracer.SpanReporter {
+	return &ConsoleSpanReporter{}
 }
 
-// RecordSpan complies with the SpanRecorder interface.
-func (r *ConsoleSpanRecorder) RecordSpan(span tracer.RawSpan) {
+// ReportSpan complies with the SpanReporter interface.
+func (r *ConsoleSpanReporter) ReportSpan(span tracer.RawSpan) {
 	allTags := make(map[string]string)
 
 	for k, v := range span.Context.Baggage {

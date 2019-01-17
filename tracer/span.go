@@ -9,22 +9,16 @@ import (
 	"github.com/opentracing/opentracing-go/log"
 )
 
-type Span interface {
-	opentracing.Span
-	Operation() string
-	Start() time.Time
-}
-
 // Implements the `Span` interface. Created via tracerImpl (see
 // `wavefront.New()`).
 type spanImpl struct {
 	tracer     *WavefrontTracer
 	sync.Mutex // protects the fields below
-	raw        RawSpan
+	raw        rawSpan
 }
 
-type RawSpan struct {
-	// Those recording the RawSpan should also record the contents of its
+type rawSpan struct {
+	// Those recording the rawSpan should also record the contents of its
 	// SpanContext.
 	Context SpanContext
 
@@ -55,7 +49,7 @@ var spanPool = &sync.Pool{New: func() interface{} {
 
 func (s *spanImpl) reset() {
 	s.tracer = nil
-	s.raw = RawSpan{
+	s.raw = rawSpan{
 		Context: SpanContext{},
 	}
 }
@@ -115,7 +109,7 @@ func (s *spanImpl) FinishWithOptions(opts opentracing.FinishOptions) {
 
 	s.raw.Duration = duration
 
-	s.tracer.recorder.RecordSpan(s.raw)
+	s.tracer.reporter.ReportSpan(s.raw)
 
 	// Last chance to get options before the span is possibly reset.
 	poolEnabled := s.tracer.enableSpanPool
@@ -144,12 +138,4 @@ func (s *spanImpl) BaggageItem(key string) string {
 	s.Lock()
 	defer s.Unlock()
 	return s.raw.Context.Baggage[key]
-}
-
-func (s *spanImpl) Operation() string {
-	return s.raw.Operation
-}
-
-func (s *spanImpl) Start() time.Time {
-	return s.raw.Start
 }

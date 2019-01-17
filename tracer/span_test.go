@@ -8,17 +8,17 @@ import (
 )
 
 func TestSpan_Baggage(t *testing.T) {
-	recorder := NewInMemoryRecorder()
-	tracer := New(recorder)
+	reporter := NewInMemoryReporter()
+	tracer := New(reporter)
 	span := tracer.StartSpan("x")
 	span.SetBaggageItem("x", "y")
 	assert.Equal(t, "y", span.BaggageItem("x"))
 	span.Finish()
-	spans := recorder.GetSpans()
+	spans := reporter.getSpans()
 	assert.Equal(t, 1, len(spans))
 	assert.Equal(t, map[string]string{"x": "y"}, spans[0].Context.Baggage)
 
-	recorder.Reset()
+	reporter.Reset()
 	span = tracer.StartSpan("x")
 	span.SetBaggageItem("x", "y")
 	baggage := make(map[string]string)
@@ -36,34 +36,34 @@ func TestSpan_Baggage(t *testing.T) {
 	})
 	assert.Equal(t, 1, len(baggage))
 	span.Finish()
-	spans = recorder.GetSpans()
+	spans = reporter.getSpans()
 	assert.Equal(t, 1, len(spans))
 	assert.Equal(t, 2, len(spans[0].Context.Baggage))
 }
 
 func TestSpan_Sampling(t *testing.T) {
-	recorder := NewInMemoryRecorder()
-	tracer := New(recorder, WithSampler(AllwaysSample{}))
+	reporter := NewInMemoryReporter()
+	tracer := New(reporter, WithSampler(AllwaysSample{}))
 	span := tracer.StartSpan("x")
 	span.Finish()
-	assert.Equal(t, 1, len(recorder.GetSampledSpans()), "by default span should be sampled")
+	assert.Equal(t, 1, len(reporter.getSampledSpans()), "by default span should be sampled")
 
-	recorder.Reset()
+	reporter.Reset()
 	span = tracer.StartSpan("x")
 	ext.SamplingPriority.Set(span, 0)
 	span.Finish()
-	assert.Equal(t, 0, len(recorder.GetSampledSpans()), "SamplingPriority=0 should turn off sampling")
+	assert.Equal(t, 0, len(reporter.getSampledSpans()), "SamplingPriority=0 should turn off sampling")
 
-	tracer = New(recorder, WithSampler(NeverSample{}))
+	tracer = New(reporter, WithSampler(NeverSample{}))
 
-	recorder.Reset()
+	reporter.Reset()
 	span = tracer.StartSpan("x")
 	span.Finish()
-	assert.Equal(t, 0, len(recorder.GetSampledSpans()), "by default span should not be sampled")
+	assert.Equal(t, 0, len(reporter.getSampledSpans()), "by default span should not be sampled")
 
-	recorder.Reset()
+	reporter.Reset()
 	span = tracer.StartSpan("x")
 	ext.SamplingPriority.Set(span, 1)
 	span.Finish()
-	assert.Equal(t, 1, len(recorder.GetSampledSpans()), "SamplingPriority=1 should turn on sampling")
+	assert.Equal(t, 1, len(reporter.getSampledSpans()), "SamplingPriority=1 should turn on sampling")
 }

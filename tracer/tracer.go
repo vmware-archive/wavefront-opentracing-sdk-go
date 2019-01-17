@@ -6,14 +6,14 @@ import (
 	opentracing "github.com/opentracing/opentracing-go"
 )
 
-// SpanRecorder record completed Spans
-type SpanRecorder interface {
-	RecordSpan(span RawSpan)
+// SpanReporter record completed Spans
+type SpanReporter interface {
+	ReportSpan(span rawSpan)
 }
 
 // Sampler control if a span shold be sampled
 type Sampler interface {
-	ShouldSample(span RawSpan) bool
+	ShouldSample(span rawSpan) bool
 }
 
 // WavefrontTracer implements the `Tracer` interface.
@@ -23,7 +23,7 @@ type WavefrontTracer struct {
 	accessorPropagator *accessorPropagator
 
 	sampler        Sampler
-	recorder       SpanRecorder
+	reporter       SpanReporter
 	enableSpanPool bool
 }
 
@@ -45,10 +45,10 @@ func DisableSpanPool() Option {
 }
 
 // New creates and returns a WavefrontTracer which defers completed Spans to
-// `recorder`.
-func New(recorder SpanRecorder, options ...Option) opentracing.Tracer {
+// `reporter`.
+func New(reporter SpanReporter, options ...Option) opentracing.Tracer {
 	tracer := &WavefrontTracer{
-		recorder:       recorder,
+		reporter:       reporter,
 		enableSpanPool: false,
 		sampler:        &AllwaysSample{},
 	}
@@ -64,31 +64,19 @@ func New(recorder SpanRecorder, options ...Option) opentracing.Tracer {
 }
 
 func (t *WavefrontTracer) StartSpan(operationName string, opts ...opentracing.StartSpanOption) opentracing.Span {
-	sso := opentracing.StartSpanOptions{}
+	options := opentracing.StartSpanOptions{}
 	for _, o := range opts {
-		o.Apply(&sso)
+		o.Apply(&options)
 	}
-	return t.StartSpanWithOptions(operationName, sso)
-}
 
-func (t *WavefrontTracer) getSpan() *spanImpl {
-	if t.enableSpanPool {
-		sp := spanPool.Get().(*spanImpl)
-		sp.reset()
-		return sp
-	}
-	return &spanImpl{}
-}
-
-func (t *WavefrontTracer) StartSpanWithOptions(operationName string, opts opentracing.StartSpanOptions) opentracing.Span {
 	// Start time.
-	startTime := opts.StartTime
+	startTime := options.StartTime
 	if startTime.IsZero() {
 		startTime = time.Now()
 	}
 
 	// Tags.
-	tags := opts.Tags
+	tags := options.Tags
 
 	// Build the new span. This is the only allocation: We'll return this as
 	// an opentracing.Span.
@@ -98,7 +86,7 @@ func (t *WavefrontTracer) StartSpanWithOptions(operationName string, opts opentr
 	// TODO: would be nice if tracer did something with all
 	// References, not just the first one.
 ReferencesLoop:
-	for _, ref := range opts.References {
+	for _, ref := range options.References {
 		switch ref.Type {
 		case opentracing.ChildOfRef,
 			opentracing.FollowsFromRef:
@@ -132,6 +120,15 @@ ReferencesLoop:
 	sp.raw.Tags = tags
 
 	return sp
+}
+
+func (t *WavefrontTracer) getSpan() *spanImpl {
+	if t.enableSpanPool {
+		sp := spanPool.Get().(*spanImpl)
+		sp.reset()
+		return sp
+	}
+	return &spanImpl{}
 }
 
 type delegatorType struct{}

@@ -11,22 +11,22 @@ import (
 
 // newTracer creates a new tracer for each test, and returns a nil cleanup function.
 func newTracer() (tracer ot.Tracer, closer func()) {
-	tracer = New(NewInMemoryRecorder())
+	tracer = New(NewInMemoryReporter())
 	return tracer, nil
 }
 
-func TestInMemoryRecorderSpans(t *testing.T) {
-	recorder := NewInMemoryRecorder()
-	var apiRecorder SpanRecorder = recorder
-	span := RawSpan{
+func TestInMemoryReporterSpans(t *testing.T) {
+	reporter := NewInMemoryReporter()
+	var apiReporter SpanReporter = reporter
+	span := rawSpan{
 		Context:   SpanContext{},
 		Operation: "test-span",
 		Start:     time.Now(),
 		Duration:  -1,
 	}
-	apiRecorder.RecordSpan(span)
-	assert.Equal(t, []RawSpan{span}, recorder.GetSpans())
-	assert.Equal(t, []RawSpan{}, recorder.GetSampledSpans())
+	apiReporter.ReportSpan(span)
+	assert.Equal(t, []rawSpan{span}, reporter.getSpans())
+	assert.Equal(t, []rawSpan{}, reporter.getSampledSpans())
 }
 
 // TODO: Un-comment when the "github.com/opentracing/opentracing-go/harness"

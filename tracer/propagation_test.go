@@ -38,8 +38,8 @@ func (vc *verbatimCarrier) State() (traceID string, spanID string, sampled bool)
 
 func TestSpanPropagator(t *testing.T) {
 	const op = "test"
-	recorder := NewInMemoryRecorder()
-	tracer := New(recorder)
+	reporter := NewInMemoryReporter()
+	tracer := New(reporter)
 
 	sp := tracer.StartSpan(op)
 	sp.SetBaggageItem("foo", "bar")
@@ -69,7 +69,7 @@ func TestSpanPropagator(t *testing.T) {
 	}
 	sp.Finish()
 
-	spans := recorder.GetSpans()
+	spans := reporter.getSpans()
 	if a, e := len(spans), len(tests)+1; a != e {
 		t.Fatalf("expected %d spans, got %d", e, a)
 	}
