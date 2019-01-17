@@ -62,12 +62,16 @@ You must create a `WavefrontSpanReporter` to report trace data to Wavefront.
 
 To create a `WavefrontSpanReporter`:
 * Specify the Wavefront sender from [Step 2](#2-set-up-a-wavefront-sender), i.e. either `WavefrontProxyClient` or `WavefrontDirectClient`.
-* Specify the ApplicationTags from [Step 1](#1-set-up-application-tags)
+* Specify the ApplicationTags from [Step 1](#1-set-up-application-tags).
 * (Optional) Specify a string that represents the source for the reported spans. If you omit the source, the host name is automatically used.
 
 ```GO
 reporter := wftracer.NewSpanReporter(sender, appTags)
-reporter.Source = "host1.foo.com"
+```
+
+You can change the Source tag on your spand using the `Source` Option (the hostname is used by default):
+```GO
+reporter := tracer.NewSpanReporter(sender, appTags, tracer.Source("app1.foo.com"))
 ```
 
 ### 4. Create the WavefrontTracer

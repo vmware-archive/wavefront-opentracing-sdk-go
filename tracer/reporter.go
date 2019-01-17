@@ -26,18 +26,32 @@ func NewApplicationTags(app, serv string) ApplicationTags {
 
 // WavefrontSpanReporter implements the wavefront.Recorder interface.
 type WavefrontSpanReporter struct {
-	Source      string
+	source      string
 	sender      wf.Sender
 	application ApplicationTags
 }
 
+// Option allow WavefrontSpanReporter customization
+type Option func(*WavefrontSpanReporter)
+
+// Source tag for the spans
+func Source(source string) Option {
+	return func(args *WavefrontSpanReporter) {
+		args.source = source
+	}
+}
+
 // NewSpanReporter returns a WavefrontSpanReporter for the given `sender`.
-func NewSpanReporter(sender wf.Sender, application ApplicationTags) *WavefrontSpanReporter {
-	return &WavefrontSpanReporter{
+func NewSpanReporter(sender wf.Sender, application ApplicationTags, setters ...Option) *WavefrontSpanReporter {
+	r := &WavefrontSpanReporter{
 		sender:      sender,
-		Source:      hostname(),
+		source:      hostname(),
 		application: application,
 	}
+	for _, setter := range setters {
+		setter(r)
+	}
+	return r
 }
 
 func hostname() string {
@@ -76,7 +90,7 @@ func (t *WavefrontSpanReporter) RecordSpan(span RawSpan) {
 	if len(span.ParentSpanID) > 0 {
 		parents = []string{span.ParentSpanID}
 	}
-	t.sender.SendSpan(span.Operation, span.Start.UnixNano(), span.Duration.Nanoseconds(), t.Source,
+	t.sender.SendSpan(span.Operation, span.Start.UnixNano(), span.Duration.Nanoseconds(), t.source,
 		span.Context.TraceID, span.Context.SpanID, parents,
 		nil, tags, nil)
 
