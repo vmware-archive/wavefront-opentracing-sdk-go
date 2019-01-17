@@ -62,14 +62,15 @@
   revision = "15512123a948d62f6361bd84818e11f2ad84059a"
 
 [[projects]]
-  digest = "1:b0267d3aff39f4b2c2c5cc2dee2d1c8c855d9c76f21a0c15c1871c5a2d2b77e5"
+  digest = "1:7eb31a4935e56eaef304528f18e7bc1d572f8dbff399c5fde279a2c7f7d889e3"
   name = "github.com/wavefronthq/wavefront-sdk-go"
   packages = [
+    "application",
     "internal",
     "senders",
   ]
   pruneopts = ""
-  revision = "b7a66ceb0066049f1dbc792349f6844dbf779833"
+  revision = "5e6963d6e31689fb4966eb9c79d6f6baad2fbe89"
 
 [[projects]]
   branch = "master"
@@ -91,6 +92,7 @@
     "github.com/opentracing/opentracing-go/log",
     "github.com/stretchr/testify/assert",
     "github.com/tuvistavie/securerandom",
+    "github.com/wavefronthq/wavefront-sdk-go/application",
     "github.com/wavefronthq/wavefront-sdk-go/senders",
     "golang.org/x/net/context",
   ]
