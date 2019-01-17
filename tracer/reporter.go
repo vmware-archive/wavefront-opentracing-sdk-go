@@ -3,7 +3,6 @@ package tracer
 import (
 	"fmt"
 	"os"
-	"strconv"
 
 	wf "github.com/wavefronthq/wavefront-sdk-go/senders"
 )
@@ -93,14 +92,4 @@ func (t *WavefrontSpanReporter) RecordSpan(span RawSpan) {
 	t.sender.SendSpan(span.Operation, span.Start.UnixNano(), span.Duration.Nanoseconds(), t.source,
 		span.Context.TraceID, span.Context.SpanID, parents,
 		nil, tags, nil)
-
-	// just for DEBUG
-	fmt.Printf("-- Operation: %v\n", span.Operation)
-	fmt.Printf("\t- TraceID: %v\n", span.Context.TraceID)
-	fmt.Printf("\t- SpanID: %v\n", span.Context.SpanID)
-	fmt.Printf("\t- parents: %v\n", span.ParentSpanID)
-	fmt.Printf("\t- start: %v (%d)\n", span.Start.UnixNano(), len(strconv.FormatInt(span.Start.UnixNano(), 10)))
-	fmt.Printf("\t- Duration: %v\n", span.Duration.Nanoseconds())
-	fmt.Printf("\t- tags: %v\n", tags)
-	fmt.Printf("\t- allTags: %v\n", allTags)
 }

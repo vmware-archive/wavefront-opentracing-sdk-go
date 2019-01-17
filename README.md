@@ -74,6 +74,15 @@ You can change the Source tag on your spand using the `Source` Option (the hostn
 reporter := tracer.NewSpanReporter(sender, appTags, tracer.Source("app1.foo.com"))
 ```
 
+#### Create a CompositeReporter (Optional)
+
+A CompositeReporter enables you to chain a WavefrontSpanReporter to another reporter, such as a ConsoleReporter. A console reporter is useful for debugging.
+```GO
+wfReporter := tracer.NewSpanReporter(sender, appTags, tracer.Source("app1.foo.com"))
+clReporter := tracer.NewConsoleSpanRecorder()
+reporter := tracer.NewCompositeSpanRecorder(wfReporter, clReporter)
+```
+
 ### 4. Create the WavefrontTracer
 
 To create a `WavefrontTracer`, you pass the `Reporter` instances you created in the previous steps:
