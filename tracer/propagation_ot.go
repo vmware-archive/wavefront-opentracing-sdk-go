@@ -12,11 +12,11 @@ import (
 )
 
 type textMapPropagator struct {
-	tracer *tracerImpl
+	tracer *WavefrontTracer
 }
 
 type binaryPropagator struct {
-	tracer *tracerImpl
+	tracer *WavefrontTracer
 }
 
 const (

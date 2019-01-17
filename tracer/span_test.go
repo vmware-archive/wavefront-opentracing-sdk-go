@@ -9,10 +9,7 @@ import (
 
 func TestSpan_Baggage(t *testing.T) {
 	recorder := NewInMemoryRecorder()
-	tracer := NewWithOptions(Options{
-		Recorder:     recorder,
-		ShouldSample: func(traceID string) bool { return true }, // always sample
-	})
+	tracer := New(recorder)
 	span := tracer.StartSpan("x")
 	span.SetBaggageItem("x", "y")
 	assert.Equal(t, "y", span.BaggageItem("x"))
@@ -46,10 +43,7 @@ func TestSpan_Baggage(t *testing.T) {
 
 func TestSpan_Sampling(t *testing.T) {
 	recorder := NewInMemoryRecorder()
-	tracer := NewWithOptions(Options{
-		Recorder:     recorder,
-		ShouldSample: func(traceID string) bool { return true },
-	})
+	tracer := New(recorder, WithSampler(AllwaysSample{}))
 	span := tracer.StartSpan("x")
 	span.Finish()
 	assert.Equal(t, 1, len(recorder.GetSampledSpans()), "by default span should be sampled")
@@ -60,10 +54,7 @@ func TestSpan_Sampling(t *testing.T) {
 	span.Finish()
 	assert.Equal(t, 0, len(recorder.GetSampledSpans()), "SamplingPriority=0 should turn off sampling")
 
-	tracer = NewWithOptions(Options{
-		Recorder:     recorder,
-		ShouldSample: func(traceID string) bool { return false },
-	})
+	tracer = New(recorder, WithSampler(NeverSample{}))
 
 	recorder.Reset()
 	span = tracer.StartSpan("x")

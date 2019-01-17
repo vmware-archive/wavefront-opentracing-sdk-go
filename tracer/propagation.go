@@ -3,7 +3,7 @@ package tracer
 import opentracing "github.com/opentracing/opentracing-go"
 
 type accessorPropagator struct {
-	tracer *tracerImpl
+	tracer *WavefrontTracer
 }
 
 // DelegatingCarrier is a flexible carrier interface which can be implemented

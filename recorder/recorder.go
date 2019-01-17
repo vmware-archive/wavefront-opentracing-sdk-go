@@ -1,9 +1,10 @@
-package tracer
+package recorder
 
 import (
 	"fmt"
 	"os"
 
+	"github.com/wavefronthq/wavefront-opentracing-sdk-go/tracer"
 	wf "github.com/wavefronthq/wavefront-sdk-go/senders"
 )
 
@@ -62,7 +63,7 @@ func hostname() string {
 }
 
 // RecordSpan complies with the tracer.Recorder interface.
-func (t *WavefrontSpanReporter) RecordSpan(span RawSpan) {
+func (t *WavefrontSpanReporter) RecordSpan(span tracer.RawSpan) {
 	allTags := make(map[string]string)
 
 	allTags["application"] = t.application.application

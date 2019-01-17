@@ -1,65 +1,69 @@
 package tracer
 
-// TODO: change package
-
 import (
 	"time"
 
 	opentracing "github.com/opentracing/opentracing-go"
 )
 
-// Tracer extends the opentracing.Tracer interface with methods to
-// probe implementation state, for use by tracer consumers.
-type Tracer interface {
-	opentracing.Tracer
-	Options() Options
-}
-
+// SpanRecorder record completed Spans
 type SpanRecorder interface {
 	RecordSpan(span RawSpan)
 }
 
-type Options struct {
-	ShouldSample   func(traceID string) bool
-	Recorder       SpanRecorder
-	EnableSpanPool bool
+// Sampler control if a span shold be sampled
+type Sampler interface {
+	ShouldSample(span RawSpan) bool
 }
 
-// TODO: review ShouldSample
-func DefaultOptions() Options {
-	return Options{
-		ShouldSample: func(traceID string) bool { return true }, //{ return traceID%64 == 0 },
-	}
-}
-
-// NewWithOptions creates a customized Tracer.
-func NewWithOptions(opts Options) opentracing.Tracer {
-	rval := &tracerImpl{options: opts}
-	rval.textPropagator = &textMapPropagator{rval}
-	rval.binaryPropagator = &binaryPropagator{rval}
-	rval.accessorPropagator = &accessorPropagator{rval}
-	return rval
-}
-
-// New creates and returns a standard Tracer which defers completed Spans to
-// `recorder`.
-// Spans created by this Tracer support the ext.SamplingPriority tag: Setting
-// ext.SamplingPriority causes the Span to be Sampled from that point on.
-func New(recorder SpanRecorder) opentracing.Tracer {
-	opts := DefaultOptions()
-	opts.Recorder = recorder
-	return NewWithOptions(opts)
-}
-
-// Implements the `Tracer` interface.
-type tracerImpl struct {
-	options            Options
+// WavefrontTracer implements the `Tracer` interface.
+type WavefrontTracer struct {
 	textPropagator     *textMapPropagator
 	binaryPropagator   *binaryPropagator
 	accessorPropagator *accessorPropagator
+
+	sampler        Sampler
+	recorder       SpanRecorder
+	enableSpanPool bool
 }
 
-func (t *tracerImpl) StartSpan(operationName string, opts ...opentracing.StartSpanOption) opentracing.Span {
+// Option allow WavefrontTracer customization
+type Option func(*WavefrontTracer)
+
+// WithSampler define a Sampler
+func WithSampler(sampler Sampler) Option {
+	return func(args *WavefrontTracer) {
+		args.sampler = sampler
+	}
+}
+
+// DisableSpanPool disable the span pool
+func DisableSpanPool() Option {
+	return func(args *WavefrontTracer) {
+		args.enableSpanPool = false
+	}
+}
+
+// New creates and returns a WavefrontTracer which defers completed Spans to
+// `recorder`.
+func New(recorder SpanRecorder, options ...Option) opentracing.Tracer {
+	tracer := &WavefrontTracer{
+		recorder:       recorder,
+		enableSpanPool: false,
+		sampler:        &AllwaysSample{},
+	}
+
+	tracer.textPropagator = &textMapPropagator{tracer}
+	tracer.binaryPropagator = &binaryPropagator{tracer}
+	tracer.accessorPropagator = &accessorPropagator{tracer}
+
+	for _, option := range options {
+		option(tracer)
+	}
+	return tracer
+}
+
+func (t *WavefrontTracer) StartSpan(operationName string, opts ...opentracing.StartSpanOption) opentracing.Span {
 	sso := opentracing.StartSpanOptions{}
 	for _, o := range opts {
 		o.Apply(&sso)
@@ -67,8 +71,8 @@ func (t *tracerImpl) StartSpan(operationName string, opts ...opentracing.StartSp
 	return t.StartSpanWithOptions(operationName, sso)
 }
 
-func (t *tracerImpl) getSpan() *spanImpl {
-	if t.options.EnableSpanPool {
+func (t *WavefrontTracer) getSpan() *spanImpl {
+	if t.enableSpanPool {
 		sp := spanPool.Get().(*spanImpl)
 		sp.reset()
 		return sp
@@ -76,7 +80,7 @@ func (t *tracerImpl) getSpan() *spanImpl {
 	return &spanImpl{}
 }
 
-func (t *tracerImpl) StartSpanWithOptions(operationName string, opts opentracing.StartSpanOptions) opentracing.Span {
+func (t *WavefrontTracer) StartSpanWithOptions(operationName string, opts opentracing.StartSpanOptions) opentracing.Span {
 	// Start time.
 	startTime := opts.StartTime
 	if startTime.IsZero() {
@@ -118,7 +122,7 @@ ReferencesLoop:
 		// No parent Span found; allocate new trace and span ids and determine
 		// the Sampled status.
 		sp.raw.Context.TraceID, sp.raw.Context.SpanID = randomID2()
-		sp.raw.Context.Sampled = t.options.ShouldSample(sp.raw.Context.TraceID)
+		sp.raw.Context.Sampled = t.sampler.ShouldSample(sp.raw)
 	}
 
 	sp.tracer = t
@@ -135,7 +139,7 @@ type delegatorType struct{}
 // Delegator is the format to use for DelegatingCarrier.
 var Delegator delegatorType
 
-func (t *tracerImpl) Inject(sc opentracing.SpanContext, format interface{}, carrier interface{}) error {
+func (t *WavefrontTracer) Inject(sc opentracing.SpanContext, format interface{}, carrier interface{}) error {
 	switch format {
 	case opentracing.TextMap, opentracing.HTTPHeaders:
 		return t.textPropagator.Inject(sc, carrier)
@@ -148,7 +152,7 @@ func (t *tracerImpl) Inject(sc opentracing.SpanContext, format interface{}, carr
 	return opentracing.ErrUnsupportedFormat
 }
 
-func (t *tracerImpl) Extract(format interface{}, carrier interface{}) (opentracing.SpanContext, error) {
+func (t *WavefrontTracer) Extract(format interface{}, carrier interface{}) (opentracing.SpanContext, error) {
 	switch format {
 	case opentracing.TextMap, opentracing.HTTPHeaders:
 		return t.textPropagator.Extract(carrier)
@@ -159,8 +163,4 @@ func (t *tracerImpl) Extract(format interface{}, carrier interface{}) (opentraci
 		return t.accessorPropagator.Extract(carrier)
 	}
 	return nil, opentracing.ErrUnsupportedFormat
-}
-
-func (t *tracerImpl) Options() Options {
-	return t.options
 }

@@ -1,4 +1,4 @@
-package tracer
+package recorder
 
 import (
 	"fmt"
@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"sync"
 
+	"github.com/wavefronthq/wavefront-opentracing-sdk-go/tracer"
 	wf "github.com/wavefronthq/wavefront-sdk-go/senders"
 )
 
@@ -15,12 +16,12 @@ type ConsoleSpanRecorder struct {
 }
 
 // NewConsoleSpanRecorder returns a ConsoleSpanRecorder.
-func NewConsoleSpanRecorder() SpanRecorder {
+func NewConsoleSpanRecorder() tracer.SpanRecorder {
 	return &ConsoleSpanRecorder{}
 }
 
 // RecordSpan complies with the SpanRecorder interface.
-func (r *ConsoleSpanRecorder) RecordSpan(span RawSpan) {
+func (r *ConsoleSpanRecorder) RecordSpan(span tracer.RawSpan) {
 	allTags := make(map[string]string)
 
 	for k, v := range span.Context.Baggage {

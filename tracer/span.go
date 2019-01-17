@@ -18,7 +18,7 @@ type Span interface {
 // Implements the `Span` interface. Created via tracerImpl (see
 // `wavefront.New()`).
 type spanImpl struct {
-	tracer     *tracerImpl
+	tracer     *WavefrontTracer
 	sync.Mutex // protects the fields below
 	raw        RawSpan
 }
@@ -115,10 +115,10 @@ func (s *spanImpl) FinishWithOptions(opts opentracing.FinishOptions) {
 
 	s.raw.Duration = duration
 
-	s.tracer.options.Recorder.RecordSpan(s.raw)
+	s.tracer.recorder.RecordSpan(s.raw)
 
 	// Last chance to get options before the span is possibly reset.
-	poolEnabled := s.tracer.options.EnableSpanPool
+	poolEnabled := s.tracer.enableSpanPool
 
 	if poolEnabled {
 		spanPool.Put(s)

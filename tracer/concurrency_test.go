@@ -10,11 +10,8 @@ import (
 const op = "test"
 
 func TestConcurrentUsage(t *testing.T) {
-	opts := DefaultOptions()
-	opts.EnableSpanPool = true
 	var cr CountingRecorder
-	opts.Recorder = &cr
-	tracer := NewWithOptions(opts)
+	tracer := New(&cr)
 	var wg sync.WaitGroup
 	const num = 100
 	wg.Add(num)
@@ -39,10 +36,8 @@ func TestConcurrentUsage(t *testing.T) {
 }
 
 func TestDisableSpanPool(t *testing.T) {
-	opts := DefaultOptions()
 	var cr CountingRecorder
-	opts.Recorder = &cr
-	tracer := NewWithOptions(opts)
+	tracer := New(&cr)
 
 	parent := tracer.StartSpan("parent")
 	parent.Finish()

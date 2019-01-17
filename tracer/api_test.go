@@ -11,10 +11,7 @@ import (
 
 // newTracer creates a new tracer for each test, and returns a nil cleanup function.
 func newTracer() (tracer ot.Tracer, closer func()) {
-	tracer = NewWithOptions(Options{
-		Recorder:     NewInMemoryRecorder(),
-		ShouldSample: func(traceID string) bool { return true }, // always sample
-	})
+	tracer = New(NewInMemoryRecorder())
 	return tracer, nil
 }
 
