@@ -27,6 +27,8 @@ type RawSpan struct {
 	// "parent"), or 0 if there is no parent.
 	ParentSpanID string
 
+	References []opentracing.SpanReference
+
 	// The name of the "operation" this span is an instance of. (Called a "span
 	// name" in some implementations)
 	Operation string

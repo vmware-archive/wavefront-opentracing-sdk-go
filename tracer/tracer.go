@@ -81,32 +81,44 @@ func (t *WavefrontTracer) StartSpan(operationName string, opts ...opentracing.St
 	// Build the new span. This is the only allocation: We'll return this as
 	// an opentracing.Span.
 	sp := t.getSpan()
+
 	// Look for a parent in the list of References.
-	//
-	// TODO: would be nice if tracer did something with all
-	// References, not just the first one.
-ReferencesLoop:
+	var firstChildOfRef SpanContext
+	var firstFollowsFromRef SpanContext
+	var refCtx SpanContext
+
 	for _, ref := range options.References {
 		switch ref.Type {
-		case opentracing.ChildOfRef,
-			opentracing.FollowsFromRef:
-
-			refCtx := ref.ReferencedContext.(SpanContext)
-			sp.raw.Context.TraceID = refCtx.TraceID
-			sp.raw.Context.SpanID = randomID()
-			sp.raw.Context.Sampled = refCtx.Sampled
-			sp.raw.ParentSpanID = refCtx.SpanID
-
-			if l := len(refCtx.Baggage); l > 0 {
-				sp.raw.Context.Baggage = make(map[string]string, l)
-				for k, v := range refCtx.Baggage {
-					sp.raw.Context.Baggage[k] = v
-				}
+		case opentracing.ChildOfRef:
+			if len(firstChildOfRef.TraceID) == 0 {
+				firstChildOfRef = ref.ReferencedContext.(SpanContext)
 			}
-			break ReferencesLoop
+		case opentracing.FollowsFromRef:
+			if len(firstChildOfRef.TraceID) == 0 {
+				firstFollowsFromRef = ref.ReferencedContext.(SpanContext)
+			}
 		}
 	}
-	if len(sp.raw.Context.TraceID) == 0 {
+
+	if len(firstChildOfRef.TraceID) != 0 {
+		refCtx = firstChildOfRef
+	} else {
+		refCtx = firstFollowsFromRef
+	}
+
+	if len(refCtx.TraceID) != 0 {
+		sp.raw.Context.TraceID = refCtx.TraceID
+		sp.raw.Context.SpanID = randomID()
+		sp.raw.Context.Sampled = refCtx.Sampled
+		sp.raw.ParentSpanID = refCtx.SpanID
+
+		if l := len(refCtx.Baggage); l > 0 {
+			sp.raw.Context.Baggage = make(map[string]string, l)
+			for k, v := range refCtx.Baggage {
+				sp.raw.Context.Baggage[k] = v
+			}
+		}
+	} else {
 		// No parent Span found; allocate new trace and span ids and determine
 		// the Sampled status.
 		sp.raw.Context.TraceID, sp.raw.Context.SpanID = randomID2()
@@ -118,7 +130,7 @@ ReferencesLoop:
 	sp.raw.Start = startTime
 	sp.raw.Duration = -1
 	sp.raw.Tags = tags
-
+	sp.raw.References = options.References
 	return sp
 }
 

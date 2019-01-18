@@ -1,18 +1,16 @@
 package reporter
 
 import (
-	"fmt"
 	"log"
 	"strconv"
 	"sync"
 
 	"github.com/wavefronthq/wavefront-opentracing-sdk-go/tracer"
-	wf "github.com/wavefronthq/wavefront-sdk-go/senders"
 )
 
 // ConsoleSpanReporter send spand to STDOUT.
 type ConsoleSpanReporter struct {
-	mux sync.Mutex
+	sync.Mutex
 }
 
 // NewConsoleSpanReporter returns a ConsoleSpanReporter.
@@ -22,30 +20,18 @@ func NewConsoleSpanReporter() tracer.SpanReporter {
 
 // ReportSpan complies with the SpanReporter interface.
 func (r *ConsoleSpanReporter) ReportSpan(span tracer.RawSpan) {
-	allTags := make(map[string]string)
+	tags := prepareTags(span)
+	parents, followsFrom := prepareReferences(span)
 
-	for k, v := range span.Context.Baggage {
-		allTags[k] = fmt.Sprintf("%v", v)
-	}
-
-	for k, v := range span.Tags {
-		allTags[k] = fmt.Sprintf("%v", v)
-	}
-
-	tags := make([]wf.SpanTag, 0)
-	for k, v := range allTags {
-		tags = append(tags, wf.SpanTag{Key: k, Value: fmt.Sprintf("%v", v)})
-	}
-
-	r.mux.Lock()
-	defer r.mux.Unlock()
+	r.Lock()
+	defer r.Unlock()
 
 	log.Printf("-- Operation: %v\n", span.Operation)
 	log.Printf("\t- TraceID: %v\n", span.Context.TraceID)
 	log.Printf("\t- SpanID: %v\n", span.Context.SpanID)
-	log.Printf("\t- parents: %v\n", span.ParentSpanID)
+	log.Printf("\t- parents: %v\n", parents)
+	log.Printf("\t- followsFrom: %v\n", followsFrom)
 	log.Printf("\t- start: %v (%d)\n", span.Start.UnixNano(), len(strconv.FormatInt(span.Start.UnixNano(), 10)))
 	log.Printf("\t- Duration: %v\n", span.Duration.Nanoseconds())
 	log.Printf("\t- tags: %v\n", tags)
-	log.Printf("\t- allTags: %v\n", allTags)
 }

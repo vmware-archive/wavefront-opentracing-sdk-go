@@ -1,7 +1,6 @@
 package reporter
 
 import (
-	"fmt"
 	"os"
 
 	"github.com/wavefronthq/wavefront-opentracing-sdk-go/tracer"
@@ -49,30 +48,13 @@ func hostname() string {
 
 // ReportSpan complies with the tracer.Reporter interface.
 func (t *WavefrontSpanReporter) ReportSpan(span tracer.RawSpan) {
-	allTags := make(map[string]string)
+	tags := prepareTags(span)
+	parents, followsFrom := prepareReferences(span)
 
 	for k, v := range t.application.Map() {
-		allTags[k] = v
+		tags = append(tags, wf.SpanTag{Key: k, Value: v})
 	}
 
-	for k, v := range span.Context.Baggage {
-		allTags[k] = fmt.Sprintf("%v", v)
-	}
-
-	for k, v := range span.Tags {
-		allTags[k] = fmt.Sprintf("%v", v)
-	}
-
-	tags := make([]wf.SpanTag, 0)
-	for k, v := range allTags {
-		tags = append(tags, wf.SpanTag{Key: k, Value: fmt.Sprintf("%v", v)})
-	}
-
-	var parents []string
-	if len(span.ParentSpanID) > 0 {
-		parents = []string{span.ParentSpanID}
-	}
 	t.sender.SendSpan(span.Operation, span.Start.UnixNano(), span.Duration.Nanoseconds(), t.source,
-		span.Context.TraceID, span.Context.SpanID, parents,
-		nil, tags, nil)
+		span.Context.TraceID, span.Context.SpanID, parents, followsFrom, tags, nil)
 }

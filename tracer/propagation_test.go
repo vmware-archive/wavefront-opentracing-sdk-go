@@ -86,6 +86,7 @@ func TestSpanPropagator(t *testing.T) {
 			// Prepare for comparison.
 			sp.Context.SpanID, sp.ParentSpanID = exp.Context.SpanID, ""
 			sp.Duration, sp.Start = exp.Duration, exp.Start
+			sp.References = exp.References
 		}
 		if a, e := sp.Context.TraceID, exp.Context.TraceID; a != e {
 			t.Fatalf("%d: TraceID changed from %s to %s", i, e, a)
