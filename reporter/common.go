@@ -9,8 +9,8 @@ import (
 )
 
 func prepareReferences(span tracer.RawSpan) ([]string, []string) {
-	parents := make([]string, 0)
-	followsFrom := make([]string, 0)
+	var parents []string
+	var followsFrom []string
 
 	for _, ref := range span.References {
 		refCtx := ref.ReferencedContext.(tracer.SpanContext)
@@ -25,15 +25,14 @@ func prepareReferences(span tracer.RawSpan) ([]string, []string) {
 }
 
 func prepareTags(span tracer.RawSpan) []wf.SpanTag {
-	tags := make([]wf.SpanTag, 0)
-
-	for k, v := range span.Context.Baggage {
-		tags = append(tags, wf.SpanTag{Key: k, Value: v})
+	if len(span.Tags) == 0 {
+		return nil
 	}
-
+	tags := make([]wf.SpanTag, len(span.Tags))
+	i := 0
 	for k, v := range span.Tags {
-		tags = append(tags, wf.SpanTag{Key: k, Value: fmt.Sprintf("%v", v)})
+		tags[i] = wf.SpanTag{Key: k, Value: fmt.Sprintf("%v", v)}
+		i++
 	}
-
 	return tags
 }

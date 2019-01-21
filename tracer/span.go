@@ -46,10 +46,6 @@ type RawSpan struct {
 	Logs []opentracing.LogRecord
 }
 
-var spanPool = &sync.Pool{New: func() interface{} {
-	return &spanImpl{}
-}}
-
 func (s *spanImpl) reset() {
 	s.tracer = nil
 	s.raw = RawSpan{
@@ -113,13 +109,6 @@ func (s *spanImpl) FinishWithOptions(opts opentracing.FinishOptions) {
 	s.raw.Duration = duration
 
 	s.tracer.reporter.ReportSpan(s.raw)
-
-	// Last chance to get options before the span is possibly reset.
-	poolEnabled := s.tracer.enableSpanPool
-
-	if poolEnabled {
-		spanPool.Put(s)
-	}
 }
 
 func (s *spanImpl) Tracer() opentracing.Tracer {

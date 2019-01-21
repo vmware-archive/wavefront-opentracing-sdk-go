@@ -22,9 +22,8 @@ type WavefrontTracer struct {
 	binaryPropagator   *binaryPropagator
 	accessorPropagator *accessorPropagator
 
-	sampler        Sampler
-	reporter       SpanReporter
-	enableSpanPool bool
+	sampler  Sampler
+	reporter SpanReporter
 }
 
 // Option allow WavefrontTracer customization
@@ -37,20 +36,12 @@ func WithSampler(sampler Sampler) Option {
 	}
 }
 
-// DisableSpanPool disable the span pool
-func DisableSpanPool() Option {
-	return func(args *WavefrontTracer) {
-		args.enableSpanPool = false
-	}
-}
-
 // New creates and returns a WavefrontTracer which defers completed Spans to
 // `reporter`.
 func New(reporter SpanReporter, options ...Option) opentracing.Tracer {
 	tracer := &WavefrontTracer{
-		reporter:       reporter,
-		enableSpanPool: false,
-		sampler:        &AllwaysSample{},
+		reporter: reporter,
+		sampler:  &AlwaysSample{},
 	}
 
 	tracer.textPropagator = &textMapPropagator{tracer}
@@ -135,11 +126,6 @@ func (t *WavefrontTracer) StartSpan(operationName string, opts ...opentracing.St
 }
 
 func (t *WavefrontTracer) getSpan() *spanImpl {
-	if t.enableSpanPool {
-		sp := spanPool.Get().(*spanImpl)
-		sp.reset()
-		return sp
-	}
 	return &spanImpl{}
 }
 

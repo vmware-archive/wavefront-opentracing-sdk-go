@@ -34,16 +34,3 @@ func TestConcurrentUsage(t *testing.T) {
 	}
 	wg.Wait()
 }
-
-func TestDisableSpanPool(t *testing.T) {
-	var cr CountingReporter
-	tracer := New(&cr)
-
-	parent := tracer.StartSpan("parent")
-	parent.Finish()
-	// This shouldn't panic.
-	child := tracer.StartSpan(
-		"child",
-		opentracing.ChildOf(parent.Context()))
-	child.Finish()
-}

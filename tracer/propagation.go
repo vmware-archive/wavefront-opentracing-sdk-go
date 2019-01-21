@@ -12,13 +12,12 @@ import (
 )
 
 const (
-	prefixTracerState = "ot-tracer-"
-	prefixBaggage     = "ot-baggage-"
+	prefixBaggage = "wf-ot-"
 
 	tracerStateFieldCount = 3
-	fieldNameTraceID      = prefixTracerState + "traceid"
-	fieldNameSpanID       = prefixTracerState + "spanid"
-	fieldNameSampled      = prefixTracerState + "sampled"
+	fieldNameTraceID      = prefixBaggage + "traceid"
+	fieldNameSpanID       = prefixBaggage + "spanid"
+	fieldNameSampled      = prefixBaggage + "sampled"
 )
 
 type accessorPropagator struct {
@@ -86,6 +85,7 @@ func (p *accessorPropagator) Extract(
 
 	return sc, nil
 }
+
 func (p *textMapPropagator) Inject(
 	spanContext opentracing.SpanContext,
 	opaqueCarrier interface{},

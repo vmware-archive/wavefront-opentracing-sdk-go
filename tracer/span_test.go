@@ -43,7 +43,7 @@ func TestSpan_Baggage(t *testing.T) {
 
 func TestSpan_Sampling(t *testing.T) {
 	reporter := NewInMemoryReporter()
-	tracer := New(reporter, WithSampler(AllwaysSample{}))
+	tracer := New(reporter, WithSampler(AlwaysSample{}))
 	span := tracer.StartSpan("x")
 	span.Finish()
 	assert.Equal(t, 1, len(reporter.getSampledSpans()), "by default span should be sampled")

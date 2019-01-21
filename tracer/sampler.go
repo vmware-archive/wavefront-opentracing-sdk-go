@@ -2,11 +2,11 @@ package tracer
 
 import "time"
 
-// AllwaysSample basic sampler to sample all Spans
-type AllwaysSample struct{}
+// AlwaysSample basic sampler to sample all Spans
+type AlwaysSample struct{}
 
 // ShouldSample allways true
-func (t AllwaysSample) ShouldSample(span RawSpan) bool {
+func (t AlwaysSample) ShouldSample(span RawSpan) bool {
 	return true
 }
 
