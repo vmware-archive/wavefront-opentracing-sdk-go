@@ -14,10 +14,9 @@ import (
 const (
 	prefixBaggage = "wf-ot-"
 
-	tracerStateFieldCount = 3
-	fieldNameTraceID      = prefixBaggage + "traceid"
-	fieldNameSpanID       = prefixBaggage + "spanid"
-	fieldNameSampled      = prefixBaggage + "sampled"
+	fieldNameTraceID = prefixBaggage + "traceid"
+	fieldNameSpanID  = prefixBaggage + "spanid"
+	fieldNameSampled = prefixBaggage + "sampled"
 )
 
 type accessorPropagator struct {
@@ -108,56 +107,48 @@ func (p *textMapPropagator) Inject(
 	return nil
 }
 
-func (p *textMapPropagator) Extract(
-	opaqueCarrier interface{},
-) (opentracing.SpanContext, error) {
+func (p *textMapPropagator) Extract(opaqueCarrier interface{}) (opentracing.SpanContext, error) {
 	carrier, ok := opaqueCarrier.(opentracing.TextMapReader)
 	if !ok {
 		return nil, opentracing.ErrInvalidCarrier
 	}
-	requiredFieldCount := 0
-	var traceID, spanID string
-	var sampled bool
+
+	result := SpanContext{}
 	var err error
-	decodedBaggage := make(map[string]string)
+
 	err = carrier.ForeachKey(func(k, v string) error {
-		switch strings.ToLower(k) {
+		lowercaseK := strings.ToLower(k)
+		switch lowercaseK {
 		case fieldNameTraceID:
-			traceID = v
+			result.TraceID = v
 		case fieldNameSpanID:
-			spanID = v
+			result.SpanID = v
 		case fieldNameSampled:
-			sampled, err = strconv.ParseBool(v)
+			result.Sampled, err = strconv.ParseBool(v)
 			if err != nil {
 				return opentracing.ErrSpanContextCorrupted
 			}
 		default:
-			lowercaseK := strings.ToLower(k)
 			if strings.HasPrefix(lowercaseK, prefixBaggage) {
-				decodedBaggage[strings.TrimPrefix(lowercaseK, prefixBaggage)] = v
+				result.Baggage[strings.TrimPrefix(lowercaseK, prefixBaggage)] = v
 			}
-			// Balance off the requiredFieldCount++ just below...
-			requiredFieldCount--
 		}
-		requiredFieldCount++
 		return nil
 	})
+
 	if err != nil {
 		return nil, err
 	}
-	if requiredFieldCount < tracerStateFieldCount {
-		if requiredFieldCount == 0 {
-			return nil, opentracing.ErrSpanContextNotFound
-		}
+
+	if len(result.SpanID) == 0 && len(result.TraceID) == 0 {
+		return nil, opentracing.ErrSpanContextNotFound
+	}
+
+	if len(result.SpanID) == 0 || len(result.TraceID) == 0 {
 		return nil, opentracing.ErrSpanContextCorrupted
 	}
 
-	return SpanContext{
-		TraceID: traceID,
-		SpanID:  spanID,
-		Sampled: sampled,
-		Baggage: decodedBaggage,
-	}, nil
+	return result, nil
 }
 
 func (p *binaryPropagator) Inject(
