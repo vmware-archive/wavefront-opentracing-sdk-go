@@ -22,7 +22,7 @@ func (r *ConsoleSpanReporter) ReportSpan(span tracer.RawSpan) {
 	tags := prepareTags(span)
 	parents, followsFrom := prepareReferences(span)
 
-	line, err := senders.SpanLine(span.Operation, span.Start.UnixNano(), span.Duration.Nanoseconds(), r.source,
+	line, err := senders.SpanLine(span.Operation, span.Start.UnixNano()/1000000, span.Duration.Nanoseconds()/1000000, r.source,
 		span.Context.TraceID, span.Context.SpanID, parents, followsFrom, tags, nil, "")
 
 	if err != nil {

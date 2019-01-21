@@ -55,6 +55,6 @@ func (t *WavefrontSpanReporter) ReportSpan(span tracer.RawSpan) {
 		tags = append(tags, wf.SpanTag{Key: k, Value: v})
 	}
 
-	t.sender.SendSpan(span.Operation, span.Start.UnixNano(), span.Duration.Nanoseconds(), t.source,
+	t.sender.SendSpan(span.Operation, span.Start.UnixNano()/1000000, span.Duration.Nanoseconds()/1000000, t.source,
 		span.Context.TraceID, span.Context.SpanID, parents, followsFrom, tags, nil)
 }
