@@ -19,6 +19,11 @@ func NewConsoleSpanReporter(source string) tracer.SpanReporter {
 
 // ReportSpan complies with the SpanReporter interface.
 func (r *ConsoleSpanReporter) ReportSpan(span tracer.RawSpan) {
+	sampled := ""
+	if !span.Context.Sampled {
+		sampled = " [not sampled]"
+	}
+
 	tags := prepareTags(span)
 	parents, followsFrom := prepareReferences(span)
 
@@ -28,6 +33,6 @@ func (r *ConsoleSpanReporter) ReportSpan(span tracer.RawSpan) {
 	if err != nil {
 		log.Printf("SpanLine Error: %v", err)
 	} else {
-		log.Printf("SpanLine: %v", line)
+		log.Printf("SpanLine%s: %v", sampled, line)
 	}
 }

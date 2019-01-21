@@ -48,6 +48,10 @@ func hostname() string {
 
 // ReportSpan complies with the tracer.Reporter interface.
 func (t *WavefrontSpanReporter) ReportSpan(span tracer.RawSpan) {
+	if !span.Context.Sampled {
+		return
+	}
+
 	tags := prepareTags(span)
 	parents, followsFrom := prepareReferences(span)
 
