@@ -1,0 +1,11 @@
+[[constraint]]
+  name = "github.com/opentracing/opentracing-go"
+  version = "^1.0.2"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/tuvistavie/securerandom"
+
+[[constraint]]
+  name = "github.com/wavefronthq/wavefront-sdk-go"
+  revision = "5e6963d6e31689fb4966eb9c79d6f6baad2fbe89"
