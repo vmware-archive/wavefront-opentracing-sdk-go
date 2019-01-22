@@ -113,7 +113,7 @@ func (p *textMapPropagator) Extract(opaqueCarrier interface{}) (opentracing.Span
 		return nil, opentracing.ErrInvalidCarrier
 	}
 
-	result := SpanContext{}
+	result := SpanContext{Baggage: make(map[string]string)}
 	var err error
 
 	err = carrier.ForeachKey(func(k, v string) error {
