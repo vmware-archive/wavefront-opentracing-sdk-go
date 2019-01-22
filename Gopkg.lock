@@ -46,6 +46,14 @@
   version = "v1.0.0"
 
 [[projects]]
+  branch = "master"
+  digest = "1:bc5884d890d71ae56382665a93d792af3602dae40fa98778170e4795598a7264"
+  name = "github.com/rcrowley/go-metrics"
+  packages = ["."]
+  pruneopts = ""
+  revision = "3113b8401b8a98917cde58f8bbd42a1b1c03b1fd"
+
+[[projects]]
   digest = "1:381bcbeb112a51493d9d998bbba207a529c73dbb49b3fd789e48c63fac1f192c"
   name = "github.com/stretchr/testify"
   packages = ["assert"]
@@ -60,6 +68,14 @@
   packages = ["."]
   pruneopts = ""
   revision = "15512123a948d62f6361bd84818e11f2ad84059a"
+
+[[projects]]
+  branch = "master"
+  digest = "1:3723a199eb607ee2b497c3118db559e27acb8bc1b79c6b745072ce822e9f8fd4"
+  name = "github.com/wavefronthq/go-metrics-wavefront"
+  packages = ["."]
+  pruneopts = ""
+  revision = "539b1839cdaf551511c78455ea0ea19fed1f81af"
 
 [[projects]]
   digest = "1:7eb31a4935e56eaef304528f18e7bc1d572f8dbff399c5fde279a2c7f7d889e3"
@@ -92,6 +108,7 @@
     "github.com/opentracing/opentracing-go/log",
     "github.com/stretchr/testify/assert",
     "github.com/tuvistavie/securerandom",
+    "github.com/wavefronthq/go-metrics-wavefront",
     "github.com/wavefronthq/wavefront-sdk-go/application",
     "github.com/wavefronthq/wavefront-sdk-go/senders",
     "golang.org/x/net/context",

@@ -1,8 +1,13 @@
 package reporter
 
 import (
+	"fmt"
 	"os"
+	"time"
 
+	"github.com/opentracing/opentracing-go/ext"
+	metrics "github.com/rcrowley/go-metrics"
+	wfMetrics "github.com/wavefronthq/go-metrics-wavefront"
 	"github.com/wavefronthq/wavefront-opentracing-sdk-go/tracer"
 	"github.com/wavefronthq/wavefront-sdk-go/application"
 	wf "github.com/wavefronthq/wavefront-sdk-go/senders"
@@ -35,6 +40,13 @@ func New(sender wf.Sender, application application.Tags, setters ...Option) *Wav
 	for _, setter := range setters {
 		setter(r)
 	}
+
+	hostTags := map[string]string{
+		"source": r.source,
+	}
+	go wfMetrics.WavefrontDirect(metrics.DefaultRegistry, 5*time.Second, hostTags,
+		"tracing.derived", "https://virunga.wavefront.com", "be4d70eb-c03a-4b93-b5d6-b8fd4b29629b")
+
 	return r
 }
 
@@ -48,6 +60,7 @@ func hostname() string {
 
 // ReportSpan complies with the tracer.Reporter interface.
 func (t *WavefrontSpanReporter) ReportSpan(span tracer.RawSpan) {
+	t.reportDerivedMetrics(span)
 	if !span.Context.Sampled {
 		return
 	}
@@ -61,4 +74,16 @@ func (t *WavefrontSpanReporter) ReportSpan(span tracer.RawSpan) {
 
 	t.sender.SendSpan(span.Operation, span.Start.UnixNano()/1000000, span.Duration.Nanoseconds()/1000000, t.source,
 		span.Context.TraceID, span.Context.SpanID, parents, followsFrom, tags, nil)
+}
+
+func (t WavefrontSpanReporter) reportDerivedMetrics(span tracer.RawSpan) {
+	metricName := fmt.Sprintf("%s.%s.%s", t.application.Application, t.application.Service, span.Operation)
+	tags := t.application.Map()
+	tags["operationName"] = span.Operation
+
+	wfMetrics.GetOrRegisterMetric(metricName+".invocation", metrics.NewCounter(), tags).(metrics.Counter).Inc(1)
+	fmt.Printf("--- %v ---\n", span.Tags[string(ext.Error)])
+	if span.Tags[string(ext.Error)] == true {
+		wfMetrics.GetOrRegisterMetric(metricName+".error", metrics.NewCounter(), tags).(metrics.Counter).Inc(1)
+	}
 }
