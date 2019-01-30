@@ -2,6 +2,14 @@
 
 
 [[projects]]
+  digest = "1:e5691038f8e87e7da05280095d968e50c17d624e25cca095d4e4cd947a805563"
+  name = "github.com/caio/go-tdigest"
+  packages = ["."]
+  pruneopts = ""
+  revision = "f3c8d94f65d3096ac96eda54ffcd10c0fe1477f1"
+  version = "v2.3.0"
+
+[[projects]]
   digest = "1:0deddd908b6b4b768cfc272c16ee61e7088a60f7fe2f06c547bd3d8e1f8b8e77"
   name = "github.com/davecgh/go-spew"
   packages = ["spew"]
@@ -46,6 +54,14 @@
   version = "v1.0.0"
 
 [[projects]]
+  branch = "master"
+  digest = "1:bc5884d890d71ae56382665a93d792af3602dae40fa98778170e4795598a7264"
+  name = "github.com/rcrowley/go-metrics"
+  packages = ["."]
+  pruneopts = ""
+  revision = "3113b8401b8a98917cde58f8bbd42a1b1c03b1fd"
+
+[[projects]]
   digest = "1:381bcbeb112a51493d9d998bbba207a529c73dbb49b3fd789e48c63fac1f192c"
   name = "github.com/stretchr/testify"
   packages = ["assert"]
@@ -62,23 +78,34 @@
   revision = "15512123a948d62f6361bd84818e11f2ad84059a"
 
 [[projects]]
-  digest = "1:7eb31a4935e56eaef304528f18e7bc1d572f8dbff399c5fde279a2c7f7d889e3"
+  branch = "laullon/v1"
+  digest = "1:fe0c5b3bf1c25b9ebe217833301d8c8af855a10fffd76347a2a4b4e6ad076700"
+  name = "github.com/wavefronthq/go-metrics-wavefront"
+  packages = ["reporter"]
+  pruneopts = ""
+  revision = "76f824a0f91f8666cbeda7d6fef77457e8526a68"
+
+[[projects]]
+  branch = "laullon/histo_update"
+  digest = "1:33212eae1fae60ded7d0850274d00cdb394c63392964ff4d6f692a97f5f2436f"
   name = "github.com/wavefronthq/wavefront-sdk-go"
   packages = [
     "application",
+    "heartbeater",
+    "histogram",
     "internal",
     "senders",
   ]
   pruneopts = ""
-  revision = "5e6963d6e31689fb4966eb9c79d6f6baad2fbe89"
+  revision = "54a41fea5d9dc76d244194f255ec8a7727ca41b8"
 
 [[projects]]
   branch = "master"
-  digest = "1:7ec13687f85b25087fe05f6ea8dd116013a8263f8eb7e057da7664bc7599d2d4"
+  digest = "1:1e9704e5379e68ac473c28aeb3f7e7cd4036ae8a246bf0285b5ebdbb8e0cfacf"
   name = "golang.org/x/net"
   packages = ["context"]
   pruneopts = ""
-  revision = "915654e7eabcea33ae277abbecf52f0d8b7a9fdc"
+  revision = "d26f9f9a57f3fab6a695bec0d84433c2c50f8bbf"
 
 [solve-meta]
   analyzer-name = "dep"
@@ -90,9 +117,13 @@
     "github.com/opentracing/opentracing-go",
     "github.com/opentracing/opentracing-go/ext",
     "github.com/opentracing/opentracing-go/log",
+    "github.com/rcrowley/go-metrics",
     "github.com/stretchr/testify/assert",
     "github.com/tuvistavie/securerandom",
+    "github.com/wavefronthq/go-metrics-wavefront/reporter",
     "github.com/wavefronthq/wavefront-sdk-go/application",
+    "github.com/wavefronthq/wavefront-sdk-go/heartbeater",
+    "github.com/wavefronthq/wavefront-sdk-go/histogram",
     "github.com/wavefronthq/wavefront-sdk-go/senders",
     "golang.org/x/net/context",
   ]

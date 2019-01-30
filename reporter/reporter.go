@@ -1,8 +1,16 @@
 package reporter
 
 import (
+	"fmt"
 	"os"
 
+	"github.com/wavefronthq/wavefront-sdk-go/heartbeater"
+
+	"github.com/wavefronthq/wavefront-sdk-go/histogram"
+
+	"github.com/opentracing/opentracing-go/ext"
+	metrics "github.com/rcrowley/go-metrics"
+	metricsReporter "github.com/wavefronthq/go-metrics-wavefront/reporter"
 	"github.com/wavefronthq/wavefront-opentracing-sdk-go/tracer"
 	"github.com/wavefronthq/wavefront-sdk-go/application"
 	wf "github.com/wavefronthq/wavefront-sdk-go/senders"
@@ -13,6 +21,8 @@ type WavefrontSpanReporter struct {
 	source      string
 	sender      wf.Sender
 	application application.Tags
+	metrics     metricsReporter.WavefrontMetricsReporter
+	heartbeater heartbeater.Service
 }
 
 // Option allow WavefrontSpanReporter customization
@@ -32,9 +42,24 @@ func New(sender wf.Sender, application application.Tags, setters ...Option) *Wav
 		source:      hostname(),
 		application: application,
 	}
+
 	for _, setter := range setters {
 		setter(r)
 	}
+
+	r.metrics = metricsReporter.New(
+		sender,
+		application,
+		metricsReporter.Source(r.source),
+		metricsReporter.Prefix("tracing.derived"),
+	)
+
+	r.heartbeater = heartbeater.Start(
+		sender,
+		application,
+		r.source,
+	)
+
 	return r
 }
 
@@ -48,6 +73,7 @@ func hostname() string {
 
 // ReportSpan complies with the tracer.Reporter interface.
 func (t *WavefrontSpanReporter) ReportSpan(span tracer.RawSpan) {
+	t.reportDerivedMetrics(span)
 	if !span.Context.Sampled {
 		return
 	}
@@ -61,4 +87,35 @@ func (t *WavefrontSpanReporter) ReportSpan(span tracer.RawSpan) {
 
 	t.sender.SendSpan(span.Operation, span.Start.UnixNano()/1000000, span.Duration.Nanoseconds()/1000000, t.source,
 		span.Context.TraceID, span.Context.SpanID, parents, followsFrom, tags, nil)
+}
+
+func (t *WavefrontSpanReporter) reportDerivedMetrics(span tracer.RawSpan) {
+	metricName := fmt.Sprintf("%s.%s.%s", t.application.Application, t.application.Service, span.Operation)
+	tags := t.application.Map()
+	tags["operationName"] = span.Operation
+
+	t.getHistogram(metricName+".duration.micros", tags).Update(float64(span.Duration.Nanoseconds() / 1000))
+	t.getCounter(metricName+".total_time.millis", tags).Inc(span.Duration.Nanoseconds() / 1000000)
+	t.getCounter(metricName+".invocation", tags).Inc(1)
+	if span.Tags[string(ext.Error)] == true {
+		t.getCounter(metricName+".error", tags).Inc(1)
+	}
+}
+
+func (t *WavefrontSpanReporter) getHistogram(name string, tags map[string]string) histogram.Histogram {
+	h := metricsReporter.GetMetric(name, tags)
+	if h == nil {
+		h = histogram.New()
+		metricsReporter.RegisterMetric(name, h, tags)
+	}
+	return h.(histogram.Histogram)
+}
+
+func (t *WavefrontSpanReporter) getCounter(name string, tags map[string]string) metrics.Counter {
+	c := metricsReporter.GetMetric(name, tags)
+	if c == nil {
+		c = metrics.NewCounter()
+		metricsReporter.RegisterMetric(name, c, tags)
+	}
+	return c.(metrics.Counter)
 }
