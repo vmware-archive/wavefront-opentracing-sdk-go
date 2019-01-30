@@ -100,7 +100,7 @@ To create a `WavefrontTracer`, you pass the `Reporter` instances you created in 
 tracer := tracer.New(reporter)
 ```
 
-### 5. Initialize Opentrace
+## Initialize Opentrace
 
 ```GO
 opentracing.InitGlobalTracer(tracer)
