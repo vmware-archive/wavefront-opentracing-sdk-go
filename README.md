@@ -89,7 +89,7 @@ A CompositeReporter enables you to chain a WavefrontSpanReporter to another repo
 ```GO
 wfReporter := reporter.New(sender, appTags, reporter.Source("app1.foo.com"))
 clReporter := reporter.NewConsoleSpanReporter("app1.foo.com")
-reporter := tracer.New(reporter.NewCompositeSpanReporter(wfReporter, clReporter), tracer.WithSampler(tracer.NeverSample{})), sender
+reporter := reporter.NewCompositeSpanReporter(wfReporter, clReporter)
 ```
 
 ### 4. Create the WavefrontTracer
