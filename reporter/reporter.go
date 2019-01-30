@@ -6,8 +6,6 @@ import (
 
 	"github.com/wavefronthq/wavefront-sdk-go/heartbeater"
 
-	"github.com/wavefronthq/wavefront-sdk-go/histogram"
-
 	"github.com/opentracing/opentracing-go/ext"
 	metrics "github.com/rcrowley/go-metrics"
 	metricsReporter "github.com/wavefronthq/go-metrics-wavefront/reporter"
@@ -94,21 +92,22 @@ func (t *WavefrontSpanReporter) reportDerivedMetrics(span tracer.RawSpan) {
 	tags := t.application.Map()
 	tags["operationName"] = span.Operation
 
-	t.getHistogram(metricName+".duration.micros", tags).Update(float64(span.Duration.Nanoseconds() / 1000))
+	t.getHistogram(metricName+".duration.micros", tags).Update(span.Duration.Nanoseconds() / 1000)
 	t.getCounter(metricName+".total_time.millis", tags).Inc(span.Duration.Nanoseconds() / 1000000)
 	t.getCounter(metricName+".invocation", tags).Inc(1)
+	errors := t.getCounter(metricName+".error", tags)
 	if span.Tags[string(ext.Error)] == true {
-		t.getCounter(metricName+".error", tags).Inc(1)
+		errors.Inc(1)
 	}
 }
 
-func (t *WavefrontSpanReporter) getHistogram(name string, tags map[string]string) histogram.Histogram {
+func (t *WavefrontSpanReporter) getHistogram(name string, tags map[string]string) metricsReporter.Histogram {
 	h := metricsReporter.GetMetric(name, tags)
 	if h == nil {
-		h = histogram.New()
+		h = metricsReporter.NewHistogram()
 		metricsReporter.RegisterMetric(name, h, tags)
 	}
-	return h.(histogram.Histogram)
+	return h.(metricsReporter.Histogram)
 }
 
 func (t *WavefrontSpanReporter) getCounter(name string, tags map[string]string) metrics.Counter {
