@@ -79,25 +79,24 @@
 
 [[projects]]
   branch = "laullon/v1"
-  digest = "1:fe0c5b3bf1c25b9ebe217833301d8c8af855a10fffd76347a2a4b4e6ad076700"
+  digest = "1:d2949cd6648b28f87bb5a9494bdc15d87eb7d0747dcc3f27ad3826051607343f"
   name = "github.com/wavefronthq/go-metrics-wavefront"
   packages = ["reporter"]
   pruneopts = ""
-  revision = "76f824a0f91f8666cbeda7d6fef77457e8526a68"
+  revision = "1ba1f7361d769c2279022b60fd50915d009c8f06"
 
 [[projects]]
   branch = "laullon/histo_update"
-  digest = "1:33212eae1fae60ded7d0850274d00cdb394c63392964ff4d6f692a97f5f2436f"
+  digest = "1:b5ef8a20c4cbf500562e18b34bb9320fb9b9483c5548fc12bca86bcc8c995121"
   name = "github.com/wavefronthq/wavefront-sdk-go"
   packages = [
     "application",
-    "heartbeater",
     "histogram",
     "internal",
     "senders",
   ]
   pruneopts = ""
-  revision = "54a41fea5d9dc76d244194f255ec8a7727ca41b8"
+  revision = "49bb178cc26c330c235f4b4516eabf803143572d"
 
 [[projects]]
   branch = "master"
@@ -122,8 +121,6 @@
     "github.com/tuvistavie/securerandom",
     "github.com/wavefronthq/go-metrics-wavefront/reporter",
     "github.com/wavefronthq/wavefront-sdk-go/application",
-    "github.com/wavefronthq/wavefront-sdk-go/heartbeater",
-    "github.com/wavefronthq/wavefront-sdk-go/histogram",
     "github.com/wavefronthq/wavefront-sdk-go/senders",
     "golang.org/x/net/context",
   ]

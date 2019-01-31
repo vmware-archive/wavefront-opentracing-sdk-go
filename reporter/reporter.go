@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/wavefronthq/wavefront-sdk-go/heartbeater"
-
 	"github.com/opentracing/opentracing-go/ext"
 	metrics "github.com/rcrowley/go-metrics"
 	metricsReporter "github.com/wavefronthq/go-metrics-wavefront/reporter"
@@ -20,7 +18,7 @@ type WavefrontSpanReporter struct {
 	sender      wf.Sender
 	application application.Tags
 	metrics     metricsReporter.WavefrontMetricsReporter
-	heartbeater heartbeater.Service
+	heartbeater application.HeartbeatService
 }
 
 // Option allow WavefrontSpanReporter customization
@@ -34,11 +32,11 @@ func Source(source string) Option {
 }
 
 // New returns a WavefrontSpanReporter for the given `sender`.
-func New(sender wf.Sender, application application.Tags, setters ...Option) *WavefrontSpanReporter {
+func New(sender wf.Sender, app application.Tags, setters ...Option) *WavefrontSpanReporter {
 	r := &WavefrontSpanReporter{
 		sender:      sender,
 		source:      hostname(),
-		application: application,
+		application: app,
 	}
 
 	for _, setter := range setters {
@@ -47,14 +45,14 @@ func New(sender wf.Sender, application application.Tags, setters ...Option) *Wav
 
 	r.metrics = metricsReporter.New(
 		sender,
-		application,
+		r.application,
 		metricsReporter.Source(r.source),
 		metricsReporter.Prefix("tracing.derived"),
 	)
 
-	r.heartbeater = heartbeater.Start(
+	r.heartbeater = application.StartHeartbeatService(
 		sender,
-		application,
+		r.application,
 		r.source,
 	)
 
