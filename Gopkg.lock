@@ -79,15 +79,15 @@
 
 [[projects]]
   branch = "laullon/v1"
-  digest = "1:d2949cd6648b28f87bb5a9494bdc15d87eb7d0747dcc3f27ad3826051607343f"
+  digest = "1:ea6f9d7bb043f92f13ae25a508e496608ba17b427b4e883e1f6e7e9b9d2e3c42"
   name = "github.com/wavefronthq/go-metrics-wavefront"
   packages = ["reporter"]
   pruneopts = ""
-  revision = "1ba1f7361d769c2279022b60fd50915d009c8f06"
+  revision = "6093fd4a6c7afb291273b6106e5b8013b62cc099"
 
 [[projects]]
   branch = "laullon/histo_update"
-  digest = "1:b5ef8a20c4cbf500562e18b34bb9320fb9b9483c5548fc12bca86bcc8c995121"
+  digest = "1:7d7bc2b4967d587a98fb8d6afef1472f7e47f23f72a5e86d04c853410fc7bab1"
   name = "github.com/wavefronthq/wavefront-sdk-go"
   packages = [
     "application",
@@ -96,7 +96,7 @@
     "senders",
   ]
   pruneopts = ""
-  revision = "49bb178cc26c330c235f4b4516eabf803143572d"
+  revision = "86d7a8676532cc683b523812c1ccb32baea686c7"
 
 [[projects]]
   branch = "master"
