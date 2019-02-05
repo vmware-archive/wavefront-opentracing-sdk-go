@@ -1,6 +1,9 @@
 package tracer
 
-import "time"
+import (
+	"strconv"
+	"time"
+)
 
 // AlwaysSample basic sampler to sample all Spans
 type AlwaysSample struct{}
@@ -28,4 +31,13 @@ func (t DurationSampler) ShouldSample(span RawSpan) bool {
 	return span.Duration > t.Duration
 }
 
-// TODO: RateSampler
+// RateSampler allows spans based on a rate
+type RateSampler struct {
+	Rate uint64
+}
+
+func (t RateSampler) ShouldSample(span RawSpan) bool {
+	traceID := span.Context.TraceID[:8]
+	id, _ := strconv.ParseUint(traceID, 16, 32)
+	return (id % 100) <= t.Rate
+}

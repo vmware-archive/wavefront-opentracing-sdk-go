@@ -78,16 +78,16 @@
   revision = "15512123a948d62f6361bd84818e11f2ad84059a"
 
 [[projects]]
-  branch = "laullon/v1"
-  digest = "1:ea6f9d7bb043f92f13ae25a508e496608ba17b427b4e883e1f6e7e9b9d2e3c42"
+  branch = "master"
+  digest = "1:d04812b4f9dfbc0f2d661455efb065bf45ed7c23ef3bdc2a7ce380301d41272d"
   name = "github.com/wavefronthq/go-metrics-wavefront"
-  packages = ["reporter"]
+  packages = ["reporting"]
   pruneopts = ""
-  revision = "6093fd4a6c7afb291273b6106e5b8013b62cc099"
+  revision = "5218246a44b3651c4d5e34382a6c0ba17e7a9f99"
 
 [[projects]]
-  branch = "laullon/histo_update"
-  digest = "1:7d7bc2b4967d587a98fb8d6afef1472f7e47f23f72a5e86d04c853410fc7bab1"
+  branch = "master"
+  digest = "1:a410eab6a62f3e3ab06b8ba1080c0200ee7abacf440ac2475d551c386d884e23"
   name = "github.com/wavefronthq/wavefront-sdk-go"
   packages = [
     "application",
@@ -96,7 +96,7 @@
     "senders",
   ]
   pruneopts = ""
-  revision = "86d7a8676532cc683b523812c1ccb32baea686c7"
+  revision = "105b8c9c3516bb10beea2c4efe26e69fa8cf41f7"
 
 [[projects]]
   branch = "master"
@@ -119,7 +119,7 @@
     "github.com/rcrowley/go-metrics",
     "github.com/stretchr/testify/assert",
     "github.com/tuvistavie/securerandom",
-    "github.com/wavefronthq/go-metrics-wavefront/reporter",
+    "github.com/wavefronthq/go-metrics-wavefront/reporting",
     "github.com/wavefronthq/wavefront-sdk-go/application",
     "github.com/wavefronthq/wavefront-sdk-go/senders",
     "golang.org/x/net/context",

@@ -8,4 +8,4 @@
 
 [[constraint]]
   name = "github.com/wavefronthq/go-metrics-wavefront"
-  branch = "laullon/v1"
+  branch = "master"
