@@ -7,5 +7,5 @@
   name = "github.com/tuvistavie/securerandom"
 
 [[constraint]]
-  name = "github.com/wavefronthq/wavefront-sdk-go"
-  revision = "5e6963d6e31689fb4966eb9c79d6f6baad2fbe89"
+  name = "github.com/wavefronthq/go-metrics-wavefront"
+  branch = "master"
