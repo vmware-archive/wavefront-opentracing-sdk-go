@@ -2,6 +2,7 @@ package tracer
 
 import (
 	"testing"
+	"time"
 
 	"github.com/opentracing/opentracing-go/ext"
 	"github.com/stretchr/testify/assert"
@@ -43,7 +44,7 @@ func TestSpan_Baggage(t *testing.T) {
 
 func TestSpan_Sampling(t *testing.T) {
 	reporter := NewInMemoryReporter()
-	tracer := New(reporter, WithSampler(AlwaysSample{}))
+	tracer := New(reporter)
 	span := tracer.StartSpan("x")
 	span.Finish()
 	assert.Equal(t, 1, len(reporter.getSampledSpans()), "by default span should be sampled")
@@ -66,4 +67,24 @@ func TestSpan_Sampling(t *testing.T) {
 	ext.SamplingPriority.Set(span, 1)
 	span.Finish()
 	assert.Equal(t, 1, len(reporter.getSampledSpans()), "SamplingPriority=1 should turn on sampling")
+
+	tracer = New(reporter, WithSampler(DurationSampler{Duration: time.Millisecond * 5}))
+	reporter.Reset()
+	span = tracer.StartSpan("x")
+	span.Finish()
+	assert.Equal(t, 0, len(reporter.getSampledSpans()), "DurationSampler not working")
+
+	reporter.Reset()
+	span = tracer.StartSpan("x")
+	time.Sleep(time.Millisecond * 10)
+	span.Finish()
+	assert.Equal(t, 1, len(reporter.getSampledSpans()), "DurationSampler not working")
+
+	tracer = New(reporter, WithSampler(NeverSample{}))
+	reporter.Reset()
+	span = tracer.StartSpan("x")
+	ext.Error.Set(span, true)
+	span.Finish()
+	assert.Equal(t, 1, len(reporter.getSampledSpans()), "error tag should turn on sampling")
+
 }

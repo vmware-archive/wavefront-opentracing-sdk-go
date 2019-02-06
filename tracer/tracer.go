@@ -14,6 +14,7 @@ type SpanReporter interface {
 // Sampler control if a span shold be sampled
 type Sampler interface {
 	ShouldSample(span RawSpan) bool
+	IsEarly() bool
 }
 
 // WavefrontTracer implements the `Tracer` interface.
@@ -22,8 +23,9 @@ type WavefrontTracer struct {
 	binaryPropagator   *binaryPropagator
 	accessorPropagator *accessorPropagator
 
-	sampler  Sampler
-	reporter SpanReporter
+	earlySamplers []Sampler
+	lateSamplers  []Sampler
+	reporter      SpanReporter
 }
 
 // Option allow WavefrontTracer customization
@@ -32,7 +34,11 @@ type Option func(*WavefrontTracer)
 // WithSampler define a Sampler
 func WithSampler(sampler Sampler) Option {
 	return func(args *WavefrontTracer) {
-		args.sampler = sampler
+		if sampler.IsEarly() {
+			args.earlySamplers = append(args.earlySamplers, sampler)
+		} else {
+			args.lateSamplers = append(args.lateSamplers, sampler)
+		}
 	}
 }
 
@@ -41,7 +47,6 @@ func WithSampler(sampler Sampler) Option {
 func New(reporter SpanReporter, options ...Option) opentracing.Tracer {
 	tracer := &WavefrontTracer{
 		reporter: reporter,
-		sampler:  &AlwaysSample{},
 	}
 
 	tracer.textPropagator = &textMapPropagator{tracer}
@@ -113,7 +118,15 @@ func (t *WavefrontTracer) StartSpan(operationName string, opts ...opentracing.St
 		// No parent Span found; allocate new trace and span ids and determine
 		// the Sampled status.
 		sp.raw.Context.TraceID, sp.raw.Context.SpanID = randomID2()
-		sp.raw.Context.Sampled = t.sampler.ShouldSample(sp.raw)
+		if len(t.earlySamplers) > 0 {
+			for _, sampler := range t.earlySamplers {
+				if !sp.raw.Context.Sampled {
+					sp.raw.Context.Sampled = sampler.ShouldSample(sp.raw)
+				}
+			}
+		} else {
+			sp.raw.Context.Sampled = true
+		}
 	}
 
 	sp.tracer = t
