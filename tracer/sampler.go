@@ -26,7 +26,6 @@ type DurationSampler struct {
 
 // ShouldSample return true if span duration is bigger than Duration
 func (t DurationSampler) ShouldSample(span RawSpan) bool {
-	log.Print(span.Duration, ">", t.Duration, "=", span.Duration > t.Duration)
 	return span.Duration > t.Duration
 }
 
