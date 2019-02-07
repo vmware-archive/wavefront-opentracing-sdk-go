@@ -108,14 +108,12 @@ func (s *spanImpl) FinishWithOptions(opts opentracing.FinishOptions) {
 
 	s.raw.Duration = duration
 
-	if s.raw.Context.Sampled {
+	if !s.raw.Context.Sampled {
 		if len(s.tracer.lateSamplers) > 0 {
 			s.raw.Context.Sampled = false
 			for _, sampler := range s.tracer.lateSamplers {
-				if !sampler.IsEarly() {
-					if !s.raw.Context.Sampled {
-						s.raw.Context.Sampled = sampler.ShouldSample(s.raw)
-					}
+				if !s.raw.Context.Sampled {
+					s.raw.Context.Sampled = sampler.ShouldSample(s.raw)
 				}
 			}
 		}
