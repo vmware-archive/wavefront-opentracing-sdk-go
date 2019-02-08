@@ -79,15 +79,15 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:d04812b4f9dfbc0f2d661455efb065bf45ed7c23ef3bdc2a7ce380301d41272d"
+  digest = "1:95411cf0b4c51607e03f84937e4475c6c54a8dc9cb35e85fe491898f34eec0fa"
   name = "github.com/wavefronthq/go-metrics-wavefront"
   packages = ["reporting"]
   pruneopts = ""
-  revision = "5218246a44b3651c4d5e34382a6c0ba17e7a9f99"
+  revision = "ce0696b49223a4c5dabd90edefbe120be95fbc92"
 
 [[projects]]
   branch = "master"
-  digest = "1:b3642b84ac10501f87a8dcb869c7b2c6e1583bcea6cff95dd53968ef9b3b6fd3"
+  digest = "1:e0fbc2af683931a7441fd1c4f6bc5602891d7efc4efc0339fa01148e0bf50898"
   name = "github.com/wavefronthq/wavefront-sdk-go"
   packages = [
     "application",
@@ -96,7 +96,7 @@
     "senders",
   ]
   pruneopts = ""
-  revision = "5e0e1d7d46ed0c3c182d73f7a12679cd13188e51"
+  revision = "a656e9e78494b14d59cc8792796848e9c9267483"
 
 [[projects]]
   branch = "master"
@@ -122,7 +122,6 @@
     "github.com/wavefronthq/go-metrics-wavefront/reporting",
     "github.com/wavefronthq/wavefront-sdk-go/application",
     "github.com/wavefronthq/wavefront-sdk-go/senders",
-    "golang.org/x/net/context",
   ]
   solver-name = "gps-cdcl"
   solver-version = 1

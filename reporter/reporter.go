@@ -60,8 +60,9 @@ func New(sender senders.Sender, app application.Tags, setters ...Option) Wavefro
 		sender,
 		r.application,
 		r.source,
+		"go",
+		"opentracing",
 	)
-
 	return r
 }
 
