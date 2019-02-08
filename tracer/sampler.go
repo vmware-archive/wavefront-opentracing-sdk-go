@@ -42,7 +42,7 @@ type RateSampler struct {
 func (t RateSampler) ShouldSample(span RawSpan) bool {
 	traceID := span.Context.TraceID[:8]
 	id, _ := strconv.ParseUint(traceID, 16, 32)
-	return (id % 100) <= t.Rate
+	return (id % 100) < t.Rate
 }
 
 // IsEarly will return always true

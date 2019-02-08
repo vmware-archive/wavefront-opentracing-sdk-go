@@ -118,14 +118,16 @@ func (t *WavefrontTracer) StartSpan(operationName string, opts ...opentracing.St
 		// No parent Span found; allocate new trace and span ids and determine
 		// the Sampled status.
 		sp.raw.Context.TraceID, sp.raw.Context.SpanID = randomID2()
-		if len(t.earlySamplers) > 0 {
+		if len(t.earlySamplers) == 0 && len(t.lateSamplers) == 0 {
+			sp.raw.Context.Sampled = true
+		} else if len(t.earlySamplers) > 0 {
 			for _, sampler := range t.earlySamplers {
 				if !sp.raw.Context.Sampled {
 					sp.raw.Context.Sampled = sampler.ShouldSample(sp.raw)
 				}
 			}
 		} else {
-			sp.raw.Context.Sampled = true
+			sp.raw.Context.Sampled = false
 		}
 	}
 
