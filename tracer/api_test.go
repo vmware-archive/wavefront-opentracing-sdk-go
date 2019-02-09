@@ -26,6 +26,11 @@ func TestInMemoryReporterSpans(t *testing.T) {
 	}
 	apiReporter.ReportSpan(span)
 	assert.Equal(t, []RawSpan{span}, reporter.getSpans())
+	reporter.Reset()
+
+	decision := false
+	span.Context.Sampled = &decision
+	apiReporter.ReportSpan(span)
 	assert.Equal(t, []RawSpan{}, reporter.getSampledSpans())
 }
 

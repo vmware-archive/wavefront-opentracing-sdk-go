@@ -77,7 +77,7 @@ func hostname() string {
 // ReportSpan complies with the tracer.Reporter interface.
 func (t *reporter) ReportSpan(span tracer.RawSpan) {
 	t.reportDerivedMetrics(span)
-	if !span.Context.Sampled {
+	if span.Context.IsSampled() && !*span.Context.SamplingDecision() {
 		return
 	}
 

@@ -19,8 +19,9 @@ func NewConsoleSpanReporter(source string) tracer.SpanReporter {
 
 // ReportSpan complies with the SpanReporter interface.
 func (r *ConsoleSpanReporter) ReportSpan(span tracer.RawSpan) {
+	decision := !span.Context.IsSampled() || *span.Context.SamplingDecision()
 	sampled := ""
-	if !span.Context.Sampled {
+	if !decision {
 		sampled = " [not sampled]"
 	}
 

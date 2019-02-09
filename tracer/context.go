@@ -9,7 +9,7 @@ type SpanContext struct {
 	SpanID string
 
 	// Whether the trace is sampled.
-	Sampled bool
+	Sampled *bool
 
 	// The span's associated baggage.
 	Baggage map[string]string // initialized on first use
@@ -39,4 +39,12 @@ func (c SpanContext) WithBaggageItem(key, val string) SpanContext {
 	}
 	// Use positional parameters so the compiler will help catch new fields.
 	return SpanContext{c.TraceID, c.SpanID, c.Sampled, newBaggage}
+}
+
+func (c SpanContext) IsSampled() bool {
+	return c.Sampled != nil
+}
+
+func (c SpanContext) SamplingDecision() *bool {
+	return c.Sampled
 }

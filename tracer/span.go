@@ -65,7 +65,8 @@ func (s *spanImpl) SetTag(key string, value interface{}) opentracing.Span {
 	defer s.Unlock()
 	if key == string(ext.SamplingPriority) {
 		if v, ok := value.(uint16); ok {
-			s.raw.Context.Sampled = v != 0
+			decision := v != 0
+			s.raw.Context.Sampled = &decision
 			return s
 		}
 	}
@@ -108,21 +109,17 @@ func (s *spanImpl) FinishWithOptions(opts opentracing.FinishOptions) {
 
 	s.raw.Duration = duration
 
-	if !s.raw.Context.Sampled {
+	if !s.raw.Context.IsSampled() || !*s.raw.Context.Sampled {
 		if len(s.tracer.lateSamplers) > 0 {
-			s.raw.Context.Sampled = false
-			for _, sampler := range s.tracer.lateSamplers {
-				if !s.raw.Context.Sampled {
-					s.raw.Context.Sampled = sampler.ShouldSample(s.raw)
-				}
-			}
+			decision := s.tracer.lateSample(s.raw)
+			s.raw.Context.Sampled = &decision
 		}
 	}
 
-	if !s.raw.Context.Sampled {
-		s.raw.Context.Sampled = (s.raw.Tags["error"] == true)
+	if !s.raw.Context.IsSampled() || !*s.raw.Context.Sampled {
+		errd := s.raw.Tags["error"] == true
+		s.raw.Context.Sampled = &errd
 	}
-
 	s.tracer.reporter.ReportSpan(s.raw)
 }
 

@@ -40,7 +40,7 @@ func (r *InMemorySpanReporter) getSampledSpans() []RawSpan {
 	defer r.RUnlock()
 	spans := make([]RawSpan, 0, len(r.spans))
 	for _, span := range r.spans {
-		if span.Context.Sampled {
+		if !span.Context.IsSampled() || *span.Context.Sampled {
 			spans = append(spans, span)
 		}
 	}

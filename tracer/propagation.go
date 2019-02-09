@@ -16,7 +16,7 @@ const (
 
 	fieldNameTraceID = prefixBaggage + "traceid"
 	fieldNameSpanID  = prefixBaggage + "spanid"
-	fieldNameSampled = prefixBaggage + "sampled"
+	fieldNameSampled = prefixBaggage + "sample"
 )
 
 type accessorPropagator struct {
@@ -41,10 +41,7 @@ type DelegatingCarrier interface {
 	GetBaggage(func(key, value string))
 }
 
-func (p *accessorPropagator) Inject(
-	spanContext opentracing.SpanContext,
-	carrier interface{},
-) error {
+func (p *accessorPropagator) Inject(spanContext opentracing.SpanContext, carrier interface{}) error {
 	dc, ok := carrier.(DelegatingCarrier)
 	if !ok || dc == nil {
 		return opentracing.ErrInvalidCarrier
@@ -53,16 +50,14 @@ func (p *accessorPropagator) Inject(
 	if !ok {
 		return opentracing.ErrInvalidSpanContext
 	}
-	dc.SetState(sc.TraceID, sc.SpanID, sc.Sampled)
+	dc.SetState(sc.TraceID, sc.SpanID, !sc.IsSampled() || *sc.Sampled)
 	for k, v := range sc.Baggage {
 		dc.SetBaggageItem(k, v)
 	}
 	return nil
 }
 
-func (p *accessorPropagator) Extract(
-	carrier interface{},
-) (opentracing.SpanContext, error) {
+func (p *accessorPropagator) Extract(carrier interface{}) (opentracing.SpanContext, error) {
 	dc, ok := carrier.(DelegatingCarrier)
 	if !ok || dc == nil {
 		return nil, opentracing.ErrInvalidCarrier
@@ -72,7 +67,7 @@ func (p *accessorPropagator) Extract(
 	sc := SpanContext{
 		TraceID: traceID,
 		SpanID:  spanID,
-		Sampled: sampled,
+		Sampled: &sampled,
 		Baggage: nil,
 	}
 	dc.GetBaggage(func(k, v string) {
@@ -81,14 +76,10 @@ func (p *accessorPropagator) Extract(
 		}
 		sc.Baggage[k] = v
 	})
-
 	return sc, nil
 }
 
-func (p *textMapPropagator) Inject(
-	spanContext opentracing.SpanContext,
-	opaqueCarrier interface{},
-) error {
+func (p *textMapPropagator) Inject(spanContext opentracing.SpanContext, opaqueCarrier interface{}) error {
 	sc, ok := spanContext.(SpanContext)
 	if !ok {
 		return opentracing.ErrInvalidSpanContext
@@ -99,7 +90,9 @@ func (p *textMapPropagator) Inject(
 	}
 	carrier.Set(fieldNameTraceID, sc.TraceID)
 	carrier.Set(fieldNameSpanID, sc.SpanID)
-	carrier.Set(fieldNameSampled, strconv.FormatBool(sc.Sampled))
+	if sc.IsSampled() {
+		carrier.Set(fieldNameSampled, strconv.FormatBool(*sc.SamplingDecision()))
+	}
 
 	for k, v := range sc.Baggage {
 		carrier.Set(prefixBaggage+k, v)
@@ -124,10 +117,11 @@ func (p *textMapPropagator) Extract(opaqueCarrier interface{}) (opentracing.Span
 		case fieldNameSpanID:
 			result.SpanID = v
 		case fieldNameSampled:
-			result.Sampled, err = strconv.ParseBool(v)
+			decision, err := strconv.ParseBool(v)
 			if err != nil {
 				return opentracing.ErrSpanContextCorrupted
 			}
+			result.Sampled = &decision
 		default:
 			if strings.HasPrefix(lowercaseK, prefixBaggage) {
 				result.Baggage[strings.TrimPrefix(lowercaseK, prefixBaggage)] = v
@@ -147,14 +141,10 @@ func (p *textMapPropagator) Extract(opaqueCarrier interface{}) (opentracing.Span
 	if len(result.SpanID) == 0 || len(result.TraceID) == 0 {
 		return nil, opentracing.ErrSpanContextCorrupted
 	}
-
 	return result, nil
 }
 
-func (p *binaryPropagator) Inject(
-	spanContext opentracing.SpanContext,
-	opaqueCarrier interface{},
-) error {
+func (p *binaryPropagator) Inject(spanContext opentracing.SpanContext, opaqueCarrier interface{}) error {
 	sc, ok := spanContext.(SpanContext)
 	if !ok {
 		return opentracing.ErrInvalidSpanContext
@@ -167,7 +157,7 @@ func (p *binaryPropagator) Inject(
 	state := wire.TracerState{}
 	state.TraceId = &sc.TraceID
 	state.SpanId = &sc.SpanID
-	state.Sampled = &sc.Sampled
+	state.Sampled = sc.Sampled
 	state.BaggageItems = sc.Baggage
 
 	b, err := proto.Marshal(&state)
@@ -185,9 +175,7 @@ func (p *binaryPropagator) Inject(
 	return err
 }
 
-func (p *binaryPropagator) Extract(
-	opaqueCarrier interface{},
-) (opentracing.SpanContext, error) {
+func (p *binaryPropagator) Extract(opaqueCarrier interface{}) (opentracing.SpanContext, error) {
 	carrier, ok := opaqueCarrier.(io.Reader)
 	if !ok {
 		return nil, opentracing.ErrInvalidCarrier
@@ -217,7 +205,7 @@ func (p *binaryPropagator) Extract(
 	return SpanContext{
 		TraceID: *ctx.TraceId,
 		SpanID:  *ctx.SpanId,
-		Sampled: *ctx.Sampled,
+		Sampled: ctx.Sampled,
 		Baggage: ctx.BaggageItems,
 	}, nil
 }

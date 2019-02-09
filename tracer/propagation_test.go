@@ -29,11 +29,11 @@ func (vc *verbatimCarrier) GetBaggage(f func(string, string)) {
 }
 
 func (vc *verbatimCarrier) SetState(tID string, sID string, sampled bool) {
-	vc.SpanContext = SpanContext{TraceID: tID, SpanID: sID, Sampled: sampled}
+	vc.SpanContext = SpanContext{TraceID: tID, SpanID: sID, Sampled: &sampled}
 }
 
 func (vc *verbatimCarrier) State() (traceID string, spanID string, sampled bool) {
-	return vc.SpanContext.TraceID, vc.SpanContext.SpanID, vc.SpanContext.Sampled
+	return vc.SpanContext.TraceID, vc.SpanContext.SpanID, !vc.IsSampled() || *vc.SpanContext.Sampled
 }
 
 func TestSpanPropagator(t *testing.T) {
