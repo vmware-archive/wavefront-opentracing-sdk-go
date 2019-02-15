@@ -74,8 +74,7 @@ func (t *WavefrontTracer) StartSpan(operationName string, opts ...opentracing.St
 	// Tags.
 	tags := options.Tags
 
-	// Build the new span. This is the only allocation: We'll return this as
-	// an opentracing.Span.
+	// Build the new span. This is the only allocation: We'll return this as an opentracing.Span.
 	sp := t.getSpan()
 
 	// Look for a parent in the list of References.
@@ -126,8 +125,12 @@ func (t *WavefrontTracer) StartSpan(operationName string, opts ...opentracing.St
 	sp.raw.Operation = operationName
 	sp.raw.Start = startTime
 	sp.raw.Duration = -1
-	sp.raw.Tags = tags
 	sp.raw.References = options.References
+	sp.raw.Component = defaultComponent
+
+	for k, v := range tags {
+		sp.SetTag(k, v)
+	}
 	return sp
 }
 

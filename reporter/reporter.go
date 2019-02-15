@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/opentracing/opentracing-go/ext"
 	metrics "github.com/rcrowley/go-metrics"
@@ -52,6 +53,7 @@ func New(sender senders.Sender, app application.Tags, setters ...Option) Wavefro
 	r.metrics = reporting.NewReporter(
 		sender,
 		r.application,
+		reporting.Interval(time.Second*60),
 		reporting.Source(r.source),
 		reporting.Prefix("tracing.derived"),
 	)
@@ -99,6 +101,7 @@ func (t *reporter) reportDerivedMetrics(span tracer.RawSpan) {
 
 	tags := t.application.Map()
 	tags["operationName"] = span.Operation
+	tags["component"] = span.Component
 
 	t.getHistogram(metricName+".duration.micros", tags).Update(span.Duration.Nanoseconds() / 1000)
 	t.getCounter(metricName+".total_time.millis", tags).Inc(span.Duration.Nanoseconds() / 1000000)

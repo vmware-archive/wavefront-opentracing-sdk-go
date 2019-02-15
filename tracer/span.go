@@ -9,8 +9,7 @@ import (
 	"github.com/opentracing/opentracing-go/log"
 )
 
-// Implements the `Span` interface. Created via tracerImpl (see
-// `wavefront.New()`).
+// Implements the `Span` interface. Created via tracerImpl (see `wavefront.New()`).
 type spanImpl struct {
 	tracer     *WavefrontTracer
 	sync.Mutex // protects the fields below
@@ -29,9 +28,11 @@ type RawSpan struct {
 
 	References []opentracing.SpanReference
 
-	// The name of the "operation" this span is an instance of. (Called a "span
-	// name" in some implementations)
+	// The name of the "operation" this span is an instance of. (Called a "span name" in some implementations)
 	Operation string
+
+	// The name of the "component" this span is associated with. Can be empty.
+	Component string
 
 	// We store <start, duration> rather than <start, end> so that only
 	// one of the timestamps has global clock uncertainty issues.
@@ -63,11 +64,22 @@ func (s *spanImpl) SetOperationName(operationName string) opentracing.Span {
 func (s *spanImpl) SetTag(key string, value interface{}) opentracing.Span {
 	s.Lock()
 	defer s.Unlock()
+
+	if key == "" || value == nil {
+		return s
+	}
+
 	if key == string(ext.SamplingPriority) {
 		if v, ok := value.(uint16); ok {
 			decision := v != 0
 			s.raw.Context.Sampled = &decision
 			return s
+		}
+	}
+
+	if key == "component" {
+		if v, ok := value.(string); ok {
+			s.raw.Component = v
 		}
 	}
 

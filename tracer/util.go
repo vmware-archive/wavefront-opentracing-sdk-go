@@ -8,6 +8,10 @@ import (
 	"github.com/tuvistavie/securerandom"
 )
 
+const (
+	defaultComponent = "none"
+)
+
 var (
 	seededIDGen = rand.New(rand.NewSource(time.Now().UnixNano()))
 	// The golang rand generators are *not* intrinsically thread-safe.
