@@ -7,7 +7,7 @@ import (
 	"github.com/wavefronthq/wavefront-sdk-go/senders"
 )
 
-// ConsoleSpanReporter send spand to STDOUT.
+// ConsoleSpanReporter reports spans to STDOUT.
 type ConsoleSpanReporter struct {
 	source string
 }
@@ -17,7 +17,7 @@ func NewConsoleSpanReporter(source string) tracer.SpanReporter {
 	return &ConsoleSpanReporter{source}
 }
 
-// ReportSpan complies with the SpanReporter interface.
+// ReportSpan complies with the `tracer.SpanReporter` interface.
 func (r *ConsoleSpanReporter) ReportSpan(span tracer.RawSpan) {
 	decision := !span.Context.IsSampled() || *span.Context.SamplingDecision()
 	sampled := ""

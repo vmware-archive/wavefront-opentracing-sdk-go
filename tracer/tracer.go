@@ -1,3 +1,4 @@
+// Package tracer provides an OpenTracing compliant Tracer.
 package tracer
 
 import (
@@ -6,18 +7,18 @@ import (
 	opentracing "github.com/opentracing/opentracing-go"
 )
 
-// SpanReporter record completed Spans
+// SpanReporter reports completed Spans
 type SpanReporter interface {
 	ReportSpan(span RawSpan)
 }
 
-// Sampler control if a span shold be sampled
+// Sampler controls whether a span should be sampled/reported
 type Sampler interface {
 	ShouldSample(span RawSpan) bool
 	IsEarly() bool
 }
 
-// WavefrontTracer implements the `Tracer` interface.
+// WavefrontTracer implements the OpenTracing `Tracer` interface.
 type WavefrontTracer struct {
 	textPropagator     *textMapPropagator
 	binaryPropagator   *binaryPropagator
@@ -28,10 +29,10 @@ type WavefrontTracer struct {
 	reporter      SpanReporter
 }
 
-// Option allow WavefrontTracer customization
+// Option allows customizing the WavefrontTracer.
 type Option func(*WavefrontTracer)
 
-// WithSampler define a Sampler
+// WithSampler defines a Sampler
 func WithSampler(sampler Sampler) Option {
 	return func(args *WavefrontTracer) {
 		if sampler.IsEarly() {
@@ -42,8 +43,7 @@ func WithSampler(sampler Sampler) Option {
 	}
 }
 
-// New creates and returns a WavefrontTracer which defers completed Spans to
-// `reporter`.
+// New creates and returns a WavefrontTracer which defers completed Spans to the given `reporter`.
 func New(reporter SpanReporter, options ...Option) opentracing.Tracer {
 	tracer := &WavefrontTracer{
 		reporter: reporter,

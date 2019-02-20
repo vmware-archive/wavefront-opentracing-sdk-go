@@ -1,3 +1,4 @@
+// Package reporter provides functionality for reporting spans to Wavefront.
 package reporter
 
 import (
@@ -76,7 +77,7 @@ func hostname() string {
 	return name
 }
 
-// ReportSpan complies with the tracer.Reporter interface.
+// ReportSpan complies with the tracer.SpanReporter interface.
 func (t *reporter) ReportSpan(span tracer.RawSpan) {
 	t.reportDerivedMetrics(span)
 	if span.Context.IsSampled() && !*span.Context.SamplingDecision() {
