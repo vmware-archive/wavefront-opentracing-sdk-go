@@ -23,37 +23,45 @@ import (
 
 [Tracer](https://github.com/opentracing/specification/blob/master/specification.md#tracer) is an OpenTracing [interface](https://github.com/opentracing/opentracing-java#initialization) for creating spans and propagating them across arbitrary transports.
 
-This SDK provides a `Tracer` implementation for creating spans and sending them to Wavefront. The steps for creating a `Tracer` are:
+This SDK provides a `WavefrontTracer` that implements the `Tracer` interface. A `WaverfrontTracer`:
+* Creates spans and sends them to Wavefront. 
+* Automatically generates and reports [RED metrics](https://github.com/wavefrontHQ/wavefront-opentracing-sdk-java/blob/master/docs/metrics.md) from your spans. 
 
-1. Create an `ApplicationTags`, which specifies metadata about your application.
-2. Create a Wavefront sender object for sending trace data to Wavefront.
+The steps for creating a `WavefrontTracer` are:
+
+1. Create a `Tags` instance to specify metadata about your application.
+2. Create a Wavefront `Sender` for managing communication with Wavefront.
 3. Create a `WavefrontSpanReporter` for reporting trace data to Wavefront.
-4. Create the `Tracer` instance.
-5. Initialize Opentrace.
+4. Create the `WavefrontTracer`.
+5. Initialize the OpenTracing global tracer.
 
 ### 1. Set Up Application Tags
 
 Application tags determine the metadata (span tags) that are included with every span reported to Wavefront. These tags enable you to filter and query trace data in Wavefront.
 
+You encapsulate application tags in a `Tags` instance. See [Application Tags](https://github.com/wavefrontHQ/wavefront-sdk-go/blob/master/docs/apptags.md) for details. 
+
+The following example specifies values for the 2 required tags (`application` and `service`):
+
 ```go
-appTags := application.New("app", "serv")
+appTags := application.New("OrderingApp", "inventory")
 ```
+
 
 ### 2. Set Up a Wavefront Sender
 
 A "Wavefront sender" is an object that implements the low-level interface for sending data to Wavefront. You can choose to send data using either the [Wavefront proxy](https://docs.wavefront.com/proxies.html) or [direct ingestion](https://docs.wavefront.com/direct_ingestion.html).
 
-* Follow the steps in [Set Up a Wavefront Sender](https://github.com/wavefrontHQ/wavefront-sdk-go#proxy-sender).
+* If you have already set up a Wavefront sender for another SDK that will run in the same process, use that one. (For details, see [Share a Wavefront Sender](https://github.com/wavefrontHQ/wavefront-sdk-go/blob/master/docs/sender.md#share-a-wavefront-sender).)
 
-Direct ingestion sample:
+* Otherwise, follow the steps in [Set Up a Wavefront Sender](https://github.com/wavefrontHQ/wavefront-sdk-go/blob/master/docs/sender.md) to configure a proxy `Sender` or a direct `Sender`.
+
+The following example configures a direct `Sender` with default direct ingestion properties:
 
 ```go
 directCfg := &senders.DirectConfiguration{
   Server:               "https://INSTANCE.wavefront.com",
   Token:                "YOUR_API_TOKEN",
-  BatchSize:            10000,
-  MaxBufferSize:        50000,
-  FlushIntervalSeconds: 1,
 }
 
 sender, err := senders.NewDirectSender(directCfg)
@@ -64,19 +72,23 @@ if err != nil {
 
 ### 3. Set Up a Reporter
 
-You must create a `WavefrontSpanReporter` to report trace data to Wavefront.
+You must create a `WavefrontSpanReporter` to report trace data to Wavefront. You can optionally create a `CompositeReporter` to send data to Wavefront and print to the console.
 
-To create a `WavefrontSpanReporter`:
+#### Create a `WavefrontSpanReporter`
 
-* Specify the Wavefront sender from [Step 2](#2-set-up-a-wavefront-sender), i.e. either `WavefrontProxyClient` or `WavefrontDirectClient`.
-* Specify the ApplicationTags from [Step 1](#1-set-up-application-tags).
-* (Optional) Specify a string that represents the source for the reported spans. If you omit the source, the host name is automatically used.
+To create a `WavefrontSpanReporter`, you specify:
+
+* The Wavefront sender from [Step 2](#2-set-up-a-wavefront-sender), i.e. either a proxy `Sender` or a direct `Sender`.
+* The `Tags` instance from [Step 1](#1-set-up-application-tags).
+* (Optional) A nondefault source for the reported spans. 
+
+This example creates a `WavefrontSpanReporter` that assigns the default source (the host name) to the reported spans:
 
 ```GO
 reporter := reporter.New(sender, appTags)
 ```
 
-You can change the Source tag on your spand using the `Source` Option (the hostname is used by default):
+This example creates a `WavefrontSpanReporter` that assigns the specified source to the reported spans:
 
 ```GO
 reporter := reporter.New(sender, appTags, reporter.Source("app1.foo.com"))
@@ -84,27 +96,44 @@ reporter := reporter.New(sender, appTags, reporter.Source("app1.foo.com"))
 
 #### Create a CompositeReporter (Optional)
 
-A CompositeReporter enables you to chain a WavefrontSpanReporter to another reporter, such as a ConsoleReporter. A console reporter is useful for debugging.
+A `CompositeReporter` enables you to chain a `WavefrontSpanReporter` to another reporter, such as a `ConsoleReporter`. A console reporter is useful for debugging.
 
 ```GO
 wfReporter := reporter.New(sender, appTags, reporter.Source("app1.foo.com"))
-clReporter := reporter.NewConsoleSpanReporter("app1.foo.com")
+clReporter := reporter.NewConsoleSpanReporter("app1.foo.com") //Specify the same source you used for the WavefrontSpanReporter
 reporter := reporter.NewCompositeSpanReporter(wfReporter, clReporter)
 ```
 
 ### 4. Create the WavefrontTracer
 
-To create a `WavefrontTracer`, you pass the `Reporter` instances you created in the previous steps:
+To create a `WavefrontTracer`, you initialize it with the `Reporter` instance you created in the previous step:
 
 ```GO
 tracer := tracer.New(reporter)
 ```
 
-## Initialize Opentrace
+#### Sampling (Optional)
+
+You can optionally create the `WavefrontTracer` with one or more sampling strategies. See the [sampling documentation](https://github.com/wavefrontHQ/wavefront-opentracing-sdk-go/blob/master/docs/sampling.md) for details.
+
+```GO
+tracer.New(reporter, WithSampler(sampler))
+```
+
+### 5. Initialize the Global Tracer
+
+To create a global tracer, you initialize it with the `WavefrontTracer` you created in the previous step:
 
 ```GO
 opentracing.InitGlobalTracer(tracer)
 ```
 
-**Note:** After you initialize `Opentrace` with `WavefrontTracer`(in step 5), completed spans will automatically be reported to Wavefront.
+**Note:** Initializing the global tracer causes completed spans be reported to Wavefront automatically.
 You do not need to start the reporter explicitly.
+
+## Cross Process Context Propagation
+See the [context propagation documentation](https://github.com/wavefrontHQ/wavefront-opentracing-sdk-go/tree/master/docs/contextpropagation.md) for details on propagating span contexts across process boundaries.
+
+
+## RED Metrics
+See the [RED metrics documentation](https://github.com/wavefrontHQ/wavefront-opentracing-sdk-java/blob/master/docs/metrics.md) for details on the out-of-the-box metrics and histograms that are provided.
