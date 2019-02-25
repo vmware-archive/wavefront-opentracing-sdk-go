@@ -1,6 +1,6 @@
-# wavefront-opentracing-sdk-go [![travis build status](https://travis-ci.com/wavefrontHQ/wavefront-opentracing-sdk-go.svg?branch=master)](https://travis-ci.com/wavefrontHQ/wavefront-opentracing-sdk-go) [![OpenTracing Badge](https://img.shields.io/badge/OpenTracing-enabled-blue.svg)](http://opentracing.io)
+# wavefront-opentracing-sdk-go [![build status][ci-img]][ci] [![Go Report Card][go-report-img]][go-report] [![GoDoc][godoc-img]][godoc] [![OpenTracing Badge](https://img.shields.io/badge/OpenTracing-enabled-blue.svg)](http://opentracing.io)
 
-The Wavefront by VMware OpenTracing SDK for GO is a library that provides open tracing support for Wavefront.
+The Wavefront by VMware OpenTracing SDK for Go is a library that provides open tracing support for Wavefront.
 
 ## Requirements and Installation
 
@@ -24,8 +24,8 @@ import (
 [Tracer](https://github.com/opentracing/specification/blob/master/specification.md#tracer) is an OpenTracing [interface](https://github.com/opentracing/opentracing-java#initialization) for creating spans and propagating them across arbitrary transports.
 
 This SDK provides a `WavefrontTracer` that implements the `Tracer` interface. A `WaverfrontTracer`:
-* Creates spans and sends them to Wavefront. 
-* Automatically generates and reports [RED metrics](https://github.com/wavefrontHQ/wavefront-opentracing-sdk-java/blob/master/docs/metrics.md) from your spans. 
+* Creates spans and sends them to Wavefront.
+* Automatically generates and reports [RED metrics](https://github.com/wavefrontHQ/wavefront-opentracing-sdk-java/blob/master/docs/metrics.md) from your spans.
 
 The steps for creating a `WavefrontTracer` are:
 
@@ -39,7 +39,7 @@ The steps for creating a `WavefrontTracer` are:
 
 Application tags determine the metadata (span tags) that are included with every span reported to Wavefront. These tags enable you to filter and query trace data in Wavefront.
 
-You encapsulate application tags in a `Tags` instance. See [Application Tags](https://github.com/wavefrontHQ/wavefront-sdk-go/blob/master/docs/apptags.md) for details. 
+You encapsulate application tags in a `Tags` instance. See [Application Tags](https://github.com/wavefrontHQ/wavefront-sdk-go/blob/master/docs/apptags.md) for details.
 
 The following example specifies values for the 2 required tags (`application` and `service`):
 
@@ -80,7 +80,7 @@ To create a `WavefrontSpanReporter`, you specify:
 
 * The Wavefront sender from [Step 2](#2-set-up-a-wavefront-sender), i.e. either a proxy `Sender` or a direct `Sender`.
 * The `Tags` instance from [Step 1](#1-set-up-application-tags).
-* (Optional) A nondefault source for the reported spans. 
+* (Optional) A nondefault source for the reported spans.
 
 This example creates a `WavefrontSpanReporter` that assigns the default source (the host name) to the reported spans:
 
@@ -137,3 +137,10 @@ See the [context propagation documentation](https://github.com/wavefrontHQ/wavef
 
 ## RED Metrics
 See the [RED metrics documentation](https://github.com/wavefrontHQ/wavefront-opentracing-sdk-java/blob/master/docs/metrics.md) for details on the out-of-the-box metrics and histograms that are provided.
+
+[ci-img]: https://travis-ci.com/wavefrontHQ/wavefront-opentracing-sdk-go.svg?branch=master
+[ci]: https://travis-ci.com/wavefrontHQ/wavefront-opentracing-sdk-go
+[godoc]: https://godoc.org/github.com/wavefrontHQ/wavefront-opentracing-sdk-go
+[godoc-img]: https://godoc.org/github.com/wavefrontHQ/wavefront-opentracing-sdk-go?status.svg
+[go-report-img]: https://goreportcard.com/badge/github.com/wavefronthq/wavefront-opentracing-sdk-go
+[go-report]: https://goreportcard.com/report/github.com/wavefronthq/wavefront-opentracing-sdk-go
