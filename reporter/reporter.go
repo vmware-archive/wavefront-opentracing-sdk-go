@@ -91,8 +91,10 @@ func (t *reporter) ReportSpan(span tracer.RawSpan) {
 		tags = append(tags, senders.SpanTag{Key: k, Value: v})
 	}
 
+	logs := prepareLogs(span)
+
 	t.sender.SendSpan(span.Operation, span.Start.UnixNano()/1000000, span.Duration.Nanoseconds()/1000000, t.source,
-		span.Context.TraceID, span.Context.SpanID, parents, followsFrom, tags, nil)
+		span.Context.TraceID, span.Context.SpanID, parents, followsFrom, tags, logs)
 }
 
 func (t *reporter) reportDerivedMetrics(span tracer.RawSpan) {
