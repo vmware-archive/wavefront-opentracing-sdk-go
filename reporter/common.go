@@ -3,7 +3,7 @@ package reporter
 import (
 	"fmt"
 
-	opentracing "github.com/opentracing/opentracing-go"
+	"github.com/opentracing/opentracing-go"
 	"github.com/wavefronthq/wavefront-opentracing-sdk-go/tracer"
 	wf "github.com/wavefronthq/wavefront-sdk-go/senders"
 )
@@ -35,4 +35,19 @@ func prepareTags(span tracer.RawSpan) []wf.SpanTag {
 		i++
 	}
 	return tags
+}
+
+func prepareLogs(span tracer.RawSpan) []wf.SpanLog {
+	if len(span.Logs) == 0 {
+		return nil
+	}
+	logs := make([]wf.SpanLog, len(span.Logs))
+	for i, log := range span.Logs {
+		fields := make(map[string]string)
+		for _, field := range log.Fields {
+			fields[field.Key()] = fmt.Sprint(field.Value())
+		}
+		logs[i] = wf.SpanLog{Timestamp: log.Timestamp.Unix(), Fields: fields}
+	}
+	return logs
 }

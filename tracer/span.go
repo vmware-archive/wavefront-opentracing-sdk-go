@@ -4,7 +4,7 @@ import (
 	"sync"
 	"time"
 
-	opentracing "github.com/opentracing/opentracing-go"
+	"github.com/opentracing/opentracing-go"
 	"github.com/opentracing/opentracing-go/ext"
 	"github.com/opentracing/opentracing-go/log"
 )
@@ -91,18 +91,43 @@ func (s *spanImpl) SetTag(key string, value interface{}) opentracing.Span {
 }
 
 func (s *spanImpl) LogKV(keyValues ...interface{}) {
+	fields, err := log.InterleavedKVToFields(keyValues)
+	if err != nil {
+		return
+	}
+	s.LogFields(fields...)
 }
 
 func (s *spanImpl) LogFields(fields ...log.Field) {
+	s.Lock()
+	defer s.Unlock()
+
+	if len(fields) == 0 {
+		return
+	}
+	lr := opentracing.LogRecord{
+		Timestamp: time.Now(),
+		Fields:    fields,
+	}
+	s.appendLog(lr)
 }
 
 func (s *spanImpl) LogEvent(event string) {
+	s.Log(opentracing.LogData{Event: event})
 }
 
 func (s *spanImpl) LogEventWithPayload(event string, payload interface{}) {
+	s.Log(opentracing.LogData{Event: event, Payload: payload})
 }
 
 func (s *spanImpl) Log(ld opentracing.LogData) {
+	s.Lock()
+	defer s.Unlock()
+	s.appendLog(ld.ToLogRecord())
+}
+
+func (s *spanImpl) appendLog(lr opentracing.LogRecord) {
+	s.raw.Logs = append(s.raw.Logs, lr)
 }
 
 func (s *spanImpl) Finish() {
