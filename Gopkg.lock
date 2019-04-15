@@ -86,8 +86,7 @@
   revision = "ce0696b49223a4c5dabd90edefbe120be95fbc92"
 
 [[projects]]
-  branch = "master"
-  digest = "1:e0fbc2af683931a7441fd1c4f6bc5602891d7efc4efc0339fa01148e0bf50898"
+  digest = "1:423617b8e6c3d693d70e01bf613e6faba9bcf806770268e854b51a3ac0029950"
   name = "github.com/wavefronthq/wavefront-sdk-go"
   packages = [
     "application",
@@ -96,7 +95,7 @@
     "senders",
   ]
   pruneopts = ""
-  revision = "a656e9e78494b14d59cc8792796848e9c9267483"
+  revision = "adcaf542523713024a82dc4dc2c470f19d65b601"
 
 [[projects]]
   branch = "master"

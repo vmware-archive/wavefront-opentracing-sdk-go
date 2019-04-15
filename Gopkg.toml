@@ -9,3 +9,7 @@
 [[constraint]]
   name = "github.com/wavefronthq/go-metrics-wavefront"
   branch = "master"
+
+[[override]]
+  name = "github.com/wavefronthq/wavefront-sdk-go"
+  revision = "adcaf542523713024a82dc4dc2c470f19d65b601"
