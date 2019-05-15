@@ -88,9 +88,14 @@ func (t *reporter) ReportSpan(span tracer.RawSpan) {
 	parents, followsFrom := prepareReferences(span)
 
 	for k, v := range t.application.Map() {
-		tags = append(tags, senders.SpanTag{Key: k, Value: v})
+		if len(span.Tags) > 0 {
+			if _, ok := span.Tags[k]; !ok {
+				tags = append(tags, senders.SpanTag{Key: k, Value: v})
+			}
+		} else {
+			tags = append(tags, senders.SpanTag{Key: k, Value: v})
+		}
 	}
-
 	logs := prepareLogs(span)
 
 	t.sender.SendSpan(span.Operation, span.Start.UnixNano()/1000000, span.Duration.Nanoseconds()/1000000, t.source,
