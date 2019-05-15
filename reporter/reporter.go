@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/opentracing/opentracing-go/ext"
@@ -27,6 +28,7 @@ type reporter struct {
 	application application.Tags
 	metrics     reporting.WavefrontMetricsReporter
 	heartbeater application.HeartbeatService
+	mtx         sync.Mutex
 }
 
 // Option allow WavefrontSpanReporter customization
@@ -123,11 +125,9 @@ func (t *reporter) reportDerivedMetrics(span tracer.RawSpan) {
 func (t *reporter) getHistogram(name string, tags map[string]string) reporting.Histogram {
 	h := reporting.GetMetric(name, tags)
 	if h == nil {
-		h = reporting.NewHistogram()
-		err := reporting.RegisterMetric(name, h, tags)
-		if err != nil {
-			panic(err)
-		}
+		t.mtx.Lock()
+		h = reporting.GetOrRegisterMetric(name, reporting.NewHistogram(), tags)
+		t.mtx.Unlock()
 	}
 	return h.(reporting.Histogram)
 }
@@ -135,11 +135,9 @@ func (t *reporter) getHistogram(name string, tags map[string]string) reporting.H
 func (t *reporter) getCounter(name string, tags map[string]string) metrics.Counter {
 	c := reporting.GetMetric(name, tags)
 	if c == nil {
-		c = metrics.NewCounter()
-		err := reporting.RegisterMetric(name, c, tags)
-		if err != nil {
-			panic(err)
-		}
+		t.mtx.Lock()
+		c = reporting.GetOrRegisterMetric(name, metrics.NewCounter(), tags)
+		t.mtx.Unlock()
 	}
 	return c.(metrics.Counter)
 }
