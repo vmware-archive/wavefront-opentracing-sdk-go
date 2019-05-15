@@ -51,3 +51,18 @@ func prepareLogs(span tracer.RawSpan) []wf.SpanLog {
 	}
 	return logs
 }
+
+func getAppTag(key, defaultVal string, tags map[string]interface{}) (string, bool) {
+	if len(tags) > 0 {
+		if v, found := tags[key]; found {
+			return fmt.Sprint(v), true
+		}
+	}
+	return defaultVal, false
+}
+
+func replaceTag(tags map[string]string, key, value string, replace bool) {
+	if replace {
+		tags[key] = value
+	}
+}

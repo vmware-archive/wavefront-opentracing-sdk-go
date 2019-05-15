@@ -90,12 +90,9 @@ func (t *reporter) ReportSpan(span tracer.RawSpan) {
 	parents, followsFrom := prepareReferences(span)
 
 	for k, v := range t.application.Map() {
-		if len(span.Tags) > 0 {
-			if _, ok := span.Tags[k]; !ok {
-				tags = append(tags, senders.SpanTag{Key: k, Value: v})
-			}
-		} else {
-			tags = append(tags, senders.SpanTag{Key: k, Value: v})
+		// do not append if tag is already present on the span
+		if value, found := getAppTag(k, v, span.Tags); !found {
+			tags = append(tags, senders.SpanTag{Key: k, Value: value})
 		}
 	}
 	logs := prepareLogs(span)
@@ -105,13 +102,19 @@ func (t *reporter) ReportSpan(span tracer.RawSpan) {
 }
 
 func (t *reporter) reportDerivedMetrics(span tracer.RawSpan) {
-	metricName := fmt.Sprintf("%s.%s.%s", t.application.Application, t.application.Service, span.Operation)
+	// override application and service name if tag present
+	appName, appFound := getAppTag("application", t.application.Application, span.Tags)
+	serviceName, svcFound := getAppTag("service", t.application.Service, span.Tags)
+
+	metricName := fmt.Sprintf("%s.%s.%s", appName, serviceName, span.Operation)
 	metricName = strings.Replace(metricName, " ", "-", -1)
 	metricName = strings.Replace(metricName, "\"", "\\\"", -1)
 
 	tags := t.application.Map()
 	tags["operationName"] = span.Operation
 	tags["component"] = span.Component
+	replaceTag(tags, "application", appName, appFound)
+	replaceTag(tags, "service", serviceName, svcFound)
 
 	t.getHistogram(metricName+".duration.micros", tags).Update(span.Duration.Nanoseconds() / 1000)
 	t.getCounter(metricName+".total_time.millis", tags).Inc(span.Duration.Nanoseconds() / 1000000)
