@@ -3,6 +3,7 @@ package reporter
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"strings"
 	"sync"
@@ -26,9 +27,11 @@ type reporter struct {
 	source      string
 	sender      senders.Sender
 	application application.Tags
-	metrics     reporting.WavefrontMetricsReporter
 	heartbeater application.HeartbeatService
+	spansCh     chan tracer.RawSpan
+	done        chan bool
 	mtx         sync.Mutex
+	metrics     reporting.WavefrontMetricsReporter
 }
 
 // Option allow WavefrontSpanReporter customization
@@ -38,6 +41,14 @@ type Option func(*reporter)
 func Source(source string) Option {
 	return func(args *reporter) {
 		args.source = source
+	}
+}
+
+// Buffer size for the in-memory buffer. Incoming spans are dropped if buffer is full.
+// Defaults to 50,000.
+func BufferSize(size int) Option {
+	return func(args *reporter) {
+		args.spansCh = make(chan tracer.RawSpan, size)
 	}
 }
 
@@ -51,6 +62,10 @@ func New(sender senders.Sender, app application.Tags, setters ...Option) Wavefro
 
 	for _, setter := range setters {
 		setter(r)
+	}
+
+	if r.spansCh == nil {
+		r.spansCh = make(chan tracer.RawSpan, 50000)
 	}
 
 	r.metrics = reporting.NewReporter(
@@ -68,6 +83,10 @@ func New(sender senders.Sender, app application.Tags, setters ...Option) Wavefro
 		"go",
 		"opentracing",
 	)
+
+	// kick off async span processing
+	go r.process()
+
 	return r
 }
 
@@ -79,6 +98,19 @@ func hostname() string {
 	return name
 }
 
+func (t *reporter) process() {
+	for {
+		select {
+		case span, more := <-t.spansCh:
+			if !more {
+				t.done <- true
+				return
+			}
+			t.reportInternal(span)
+		}
+	}
+}
+
 // ReportSpan complies with the tracer.SpanReporter interface.
 func (t *reporter) ReportSpan(span tracer.RawSpan) {
 	t.reportDerivedMetrics(span)
@@ -86,6 +118,27 @@ func (t *reporter) ReportSpan(span tracer.RawSpan) {
 		return
 	}
 
+	select {
+	case t.spansCh <- span:
+		return
+	default:
+		//TODO: implement drop span and increment counter
+	}
+}
+
+func (t *reporter) Close() error {
+	close(t.spansCh)
+
+	select {
+	case <-t.done:
+		log.Println("closed wavefront reporter")
+	case <-time.After(5 * time.Second):
+		return fmt.Errorf("timed out closing wavefront reporter")
+	}
+	return nil
+}
+
+func (t *reporter) reportInternal(span tracer.RawSpan) {
 	tags := prepareTags(span)
 	parents, followsFrom := prepareReferences(span)
 

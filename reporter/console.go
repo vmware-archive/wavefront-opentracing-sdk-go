@@ -37,3 +37,7 @@ func (r *ConsoleSpanReporter) ReportSpan(span tracer.RawSpan) {
 		log.Printf("SpanLine%s: %v", sampled, line)
 	}
 }
+
+func (r *ConsoleSpanReporter) Close() error {
+	return nil
+}

@@ -25,6 +25,10 @@ func (r *InMemorySpanReporter) ReportSpan(span RawSpan) {
 	r.spans = append(r.spans, span)
 }
 
+func (r *InMemorySpanReporter) Close() error {
+	return nil
+}
+
 // getSpans returns a copy of the array of spans accumulated so far.
 func (r *InMemorySpanReporter) getSpans() []RawSpan {
 	r.RLock()
@@ -60,4 +64,8 @@ type CountingReporter int32
 // ReportSpan implements the respective method of SpanReporter.
 func (c *CountingReporter) ReportSpan(r RawSpan) {
 	atomic.AddInt32((*int32)(c), 1)
+}
+
+func (c *CountingReporter) Close() error {
+	return nil
 }
