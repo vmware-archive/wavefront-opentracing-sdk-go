@@ -28,6 +28,7 @@ type reporter struct {
 	sender           senders.Sender
 	application      application.Tags
 	heartbeater      application.HeartbeatService
+	bufferSize       int
 	spansCh          chan tracer.RawSpan
 	done             chan bool
 	mtx              sync.Mutex
@@ -56,7 +57,7 @@ func Source(source string) Option {
 // Defaults to 50,000.
 func BufferSize(size int) Option {
 	return func(args *reporter) {
-		args.spansCh = make(chan tracer.RawSpan, size)
+		args.bufferSize = size
 	}
 }
 
@@ -66,15 +67,14 @@ func New(sender senders.Sender, app application.Tags, setters ...Option) Wavefro
 		sender:      sender,
 		source:      hostname(),
 		application: app,
+		bufferSize:  50000,
 	}
 
 	for _, setter := range setters {
 		setter(r)
 	}
 
-	if r.spansCh == nil {
-		r.spansCh = make(chan tracer.RawSpan, 50000)
-	}
+	r.spansCh = make(chan tracer.RawSpan, r.bufferSize)
 
 	r.derivedReporter = reporting.NewReporter(
 		sender,
@@ -102,7 +102,7 @@ func New(sender senders.Sender, app application.Tags, setters ...Option) Wavefro
 		return int64(len(r.spansCh))
 	}), nil).(metrics.Gauge)
 	r.remCapacity = r.internalReporter.GetOrRegisterMetric("queue.remaining_capacity", metrics.NewFunctionalGauge(func() int64 {
-		return int64(cap(r.spansCh) - len(r.spansCh))
+		return int64(r.bufferSize - len(r.spansCh))
 	}), nil).(metrics.Gauge)
 
 	r.heartbeater = application.StartHeartbeatService(
