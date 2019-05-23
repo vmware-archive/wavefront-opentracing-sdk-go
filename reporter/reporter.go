@@ -4,6 +4,7 @@ package reporter
 import (
 	"fmt"
 	"log"
+	"math/rand"
 	"os"
 	"strings"
 	"sync"
@@ -31,6 +32,7 @@ type reporter struct {
 	bufferSize       int
 	spansCh          chan tracer.RawSpan
 	done             chan bool
+	logPercent       float32
 	mtx              sync.Mutex
 	derivedReporter  reporting.WavefrontMetricsReporter
 	internalReporter reporting.WavefrontMetricsReporter
@@ -61,12 +63,25 @@ func BufferSize(size int) Option {
 	}
 }
 
+// Percent of log messages to be logged by this reporter. Between 0.0 and 1.0. Defaults to 0.1 or 10%.
+func LogPercent(percent float32) Option {
+	return func(args *reporter) {
+		if percent < 0.0 {
+			percent = 0.0
+		} else if percent > 1.0 {
+			percent = 1.0
+		}
+		args.logPercent = percent
+	}
+}
+
 // New returns a WavefrontSpanReporter for the given `sender`.
 func New(sender senders.Sender, app application.Tags, setters ...Option) WavefrontSpanReporter {
 	r := &reporter{
 		sender:      sender,
 		source:      hostname(),
 		application: app,
+		logPercent:  0.1,
 		bufferSize:  50000,
 	}
 
@@ -75,6 +90,9 @@ func New(sender senders.Sender, app application.Tags, setters ...Option) Wavefro
 	}
 
 	r.spansCh = make(chan tracer.RawSpan, r.bufferSize)
+
+	// init rand for logging
+	rand.Seed(time.Now().UnixNano())
 
 	r.derivedReporter = reporting.NewReporter(
 		sender,
@@ -154,6 +172,9 @@ func (t *reporter) ReportSpan(span tracer.RawSpan) {
 		return
 	default:
 		t.spansDropped.Inc(1)
+		if t.loggingAllowed() {
+			log.Printf("buffer full, dropping span: %s\n", span.Operation)
+		}
 	}
 }
 
@@ -186,6 +207,9 @@ func (t *reporter) reportInternal(span tracer.RawSpan) {
 		t.source, span.Context.TraceID, span.Context.SpanID, parents, followsFrom, tags, logs)
 	if err != nil {
 		t.errorsCount.Inc(1)
+		if t.loggingAllowed() {
+			log.Printf("error reporting span: %s error: %v", span.Operation, err)
+		}
 	}
 }
 
@@ -231,6 +255,10 @@ func (t *reporter) getCounter(name string, tags map[string]string) metrics.Count
 		t.mtx.Unlock()
 	}
 	return c.(metrics.Counter)
+}
+
+func (t *reporter) loggingAllowed() bool {
+	return rand.Float32() <= t.logPercent
 }
 
 func (t *reporter) Flush() {
