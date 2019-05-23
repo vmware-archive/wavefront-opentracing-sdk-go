@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"github.com/opentracing/opentracing-go/ext"
-	metrics "github.com/rcrowley/go-metrics"
+	"github.com/rcrowley/go-metrics"
 	"github.com/wavefronthq/go-metrics-wavefront/reporting"
 	"github.com/wavefronthq/wavefront-opentracing-sdk-go/tracer"
 	"github.com/wavefronthq/wavefront-sdk-go/application"
@@ -24,14 +24,22 @@ type WavefrontSpanReporter interface {
 }
 
 type reporter struct {
-	source      string
-	sender      senders.Sender
-	application application.Tags
-	heartbeater application.HeartbeatService
-	spansCh     chan tracer.RawSpan
-	done        chan bool
-	mtx         sync.Mutex
-	metrics     reporting.WavefrontMetricsReporter
+	source           string
+	sender           senders.Sender
+	application      application.Tags
+	heartbeater      application.HeartbeatService
+	spansCh          chan tracer.RawSpan
+	done             chan bool
+	mtx              sync.Mutex
+	derivedReporter  reporting.WavefrontMetricsReporter
+	internalReporter reporting.WavefrontMetricsReporter
+
+	queueSize      metrics.Gauge
+	remCapacity    metrics.Gauge
+	errorsCount    metrics.Counter
+	spansReceived  metrics.Counter
+	spansDropped   metrics.Counter
+	spansDiscarded metrics.Counter
 }
 
 // Option allow WavefrontSpanReporter customization
@@ -68,13 +76,34 @@ func New(sender senders.Sender, app application.Tags, setters ...Option) Wavefro
 		r.spansCh = make(chan tracer.RawSpan, 50000)
 	}
 
-	r.metrics = reporting.NewReporter(
+	r.derivedReporter = reporting.NewReporter(
 		sender,
 		r.application,
 		reporting.Interval(time.Second*60),
 		reporting.Source(r.source),
 		reporting.Prefix("tracing.derived"),
 	)
+
+	r.internalReporter = reporting.NewReporter(
+		sender,
+		r.application,
+		reporting.Interval(time.Second*60),
+		reporting.Source(r.source),
+		reporting.Prefix("~sdk.go.opentracing.reporter"),
+		reporting.CustomRegistry(metrics.NewRegistry()),
+	)
+
+	r.spansReceived = r.internalReporter.GetOrRegisterMetric("spans.received.count", metrics.NewCounter(), nil).(metrics.Counter)
+	r.spansDropped = r.internalReporter.GetOrRegisterMetric("spans.dropped.count", metrics.NewCounter(), nil).(metrics.Counter)
+	r.spansDiscarded = r.internalReporter.GetOrRegisterMetric("spans.discarded.count", metrics.NewCounter(), nil).(metrics.Counter)
+	r.errorsCount = r.internalReporter.GetOrRegisterMetric("errors.count", metrics.NewCounter(), nil).(metrics.Counter)
+
+	r.queueSize = r.internalReporter.GetOrRegisterMetric("queue.size", metrics.NewFunctionalGauge(func() int64 {
+		return int64(len(r.spansCh))
+	}), nil).(metrics.Gauge)
+	r.remCapacity = r.internalReporter.GetOrRegisterMetric("queue.remaining_capacity", metrics.NewFunctionalGauge(func() int64 {
+		return int64(cap(r.spansCh) - len(r.spansCh))
+	}), nil).(metrics.Gauge)
 
 	r.heartbeater = application.StartHeartbeatService(
 		sender,
@@ -115,26 +144,29 @@ func (t *reporter) process() {
 func (t *reporter) ReportSpan(span tracer.RawSpan) {
 	t.reportDerivedMetrics(span)
 	if span.Context.IsSampled() && !*span.Context.SamplingDecision() {
+		t.spansDiscarded.Inc(1)
 		return
 	}
 
+	t.spansReceived.Inc(1)
 	select {
 	case t.spansCh <- span:
 		return
 	default:
-		//TODO: implement drop span and increment counter
+		t.spansDropped.Inc(1)
 	}
 }
 
 func (t *reporter) Close() error {
 	close(t.spansCh)
-
 	select {
 	case <-t.done:
 		log.Println("closed wavefront reporter")
 	case <-time.After(5 * time.Second):
 		return fmt.Errorf("timed out closing wavefront reporter")
 	}
+	t.derivedReporter.Close()
+	t.internalReporter.Close()
 	return nil
 }
 
@@ -150,8 +182,11 @@ func (t *reporter) reportInternal(span tracer.RawSpan) {
 	}
 	logs := prepareLogs(span)
 
-	t.sender.SendSpan(span.Operation, span.Start.UnixNano()/1000000, span.Duration.Nanoseconds()/1000000, t.source,
-		span.Context.TraceID, span.Context.SpanID, parents, followsFrom, tags, logs)
+	err := t.sender.SendSpan(span.Operation, span.Start.UnixNano()/1000000, span.Duration.Nanoseconds()/1000000,
+		t.source, span.Context.TraceID, span.Context.SpanID, parents, followsFrom, tags, logs)
+	if err != nil {
+		t.errorsCount.Inc(1)
+	}
 }
 
 func (t *reporter) reportDerivedMetrics(span tracer.RawSpan) {
@@ -179,25 +214,25 @@ func (t *reporter) reportDerivedMetrics(span tracer.RawSpan) {
 }
 
 func (t *reporter) getHistogram(name string, tags map[string]string) reporting.Histogram {
-	h := reporting.GetMetric(name, tags)
+	h := t.derivedReporter.GetMetric(name, tags)
 	if h == nil {
 		t.mtx.Lock()
-		h = reporting.GetOrRegisterMetric(name, reporting.NewHistogram(), tags)
+		h = t.derivedReporter.GetOrRegisterMetric(name, reporting.NewHistogram(), tags)
 		t.mtx.Unlock()
 	}
 	return h.(reporting.Histogram)
 }
 
 func (t *reporter) getCounter(name string, tags map[string]string) metrics.Counter {
-	c := reporting.GetMetric(name, tags)
+	c := t.derivedReporter.GetMetric(name, tags)
 	if c == nil {
 		t.mtx.Lock()
-		c = reporting.GetOrRegisterMetric(name, metrics.NewCounter(), tags)
+		c = t.derivedReporter.GetOrRegisterMetric(name, metrics.NewCounter(), tags)
 		t.mtx.Unlock()
 	}
 	return c.(metrics.Counter)
 }
 
 func (t *reporter) Flush() {
-	t.metrics.Report()
+	t.derivedReporter.Report()
 }

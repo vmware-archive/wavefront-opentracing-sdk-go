@@ -79,11 +79,11 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:95411cf0b4c51607e03f84937e4475c6c54a8dc9cb35e85fe491898f34eec0fa"
+  digest = "1:836368c55aa45f88388c8b648e3951674770e6350263cfbccd2d5bf3482e8b5b"
   name = "github.com/wavefronthq/go-metrics-wavefront"
   packages = ["reporting"]
   pruneopts = ""
-  revision = "ce0696b49223a4c5dabd90edefbe120be95fbc92"
+  revision = "5dd1c3a27743c914f11c549a1e3f097ffde8ded2"
 
 [[projects]]
   digest = "1:423617b8e6c3d693d70e01bf613e6faba9bcf806770268e854b51a3ac0029950"
