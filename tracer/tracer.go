@@ -2,13 +2,15 @@
 package tracer
 
 import (
+	"io"
 	"time"
 
-	opentracing "github.com/opentracing/opentracing-go"
+	"github.com/opentracing/opentracing-go"
 )
 
 // SpanReporter reports completed Spans
 type SpanReporter interface {
+	io.Closer
 	ReportSpan(span RawSpan)
 }
 
