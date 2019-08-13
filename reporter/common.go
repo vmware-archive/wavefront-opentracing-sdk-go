@@ -47,7 +47,7 @@ func prepareLogs(span tracer.RawSpan) []wf.SpanLog {
 		for _, field := range log.Fields {
 			fields[field.Key()] = fmt.Sprint(field.Value())
 		}
-		logs[i] = wf.SpanLog{Timestamp: log.Timestamp.Unix(), Fields: fields}
+		logs[i] = wf.SpanLog{Timestamp: log.Timestamp.UnixNano() / 1000, Fields: fields}
 	}
 	return logs
 }
