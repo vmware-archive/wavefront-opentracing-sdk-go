@@ -2,7 +2,6 @@ package tracer
 
 import (
 	"fmt"
-	"sync"
 	"testing"
 	"time"
 
@@ -163,9 +162,7 @@ func TestSamplingError(t *testing.T) {
 }
 
 func TestEmptySpanTag(t *testing.T) {
-	rawSpan := RawSpan{}
-	mutex := sync.Mutex{}
-	span := spanImpl{nil, mutex, rawSpan}
+	span := spanImpl{}
 	span.SetTag("key", "")
 	_, ok := getAppTag("key", "true", span.raw.Tags);
 	assert.Equal(t, ok, false)
