@@ -65,7 +65,7 @@ func (s *spanImpl) SetTag(key string, value interface{}) opentracing.Span {
 	s.Lock()
 	defer s.Unlock()
 
-	if v, ok := value.(string); ok && v == ""{
+	if v, ok := value.(string); ok && v == "" {
 		return s
 	}
 

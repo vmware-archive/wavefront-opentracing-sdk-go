@@ -164,7 +164,7 @@ func TestSamplingError(t *testing.T) {
 func TestEmptySpanTag(t *testing.T) {
 	span := spanImpl{}
 	span.SetTag("key", "")
-	_, ok := getAppTag("key", "true", span.raw.Tags);
+	_, ok := getAppTag("key", "true", span.raw.Tags)
 	assert.Equal(t, ok, false)
 }
 
