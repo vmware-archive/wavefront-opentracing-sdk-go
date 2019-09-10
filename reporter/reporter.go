@@ -229,7 +229,7 @@ func (t *reporter) reportDerivedMetrics(span tracer.RawSpan) {
 	replaceTag(tags, "service", serviceName, svcFound)
 
 	v, found := getAppTag("error", "false", span.Tags)
-	if found && v == "true"{
+	if found && v == "true" {
 		tagsError := t.application.Map()
 		tagsError["operationName"] = span.Operation
 		tagsError["component"] = span.Component
