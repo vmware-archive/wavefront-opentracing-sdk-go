@@ -228,7 +228,19 @@ func (t *reporter) reportDerivedMetrics(span tracer.RawSpan) {
 	replaceTag(tags, "application", appName, appFound)
 	replaceTag(tags, "service", serviceName, svcFound)
 
-	t.getHistogram(metricName+".duration.micros", tags).Update(span.Duration.Nanoseconds() / 1000)
+	v, found := getAppTag("error", "false", span.Tags)
+	if found && v == "true"{
+		tagsError := t.application.Map()
+		tagsError["operationName"] = span.Operation
+		tagsError["component"] = span.Component
+		replaceTag(tagsError, "application", appName, appFound)
+		replaceTag(tagsError, "service", serviceName, svcFound)
+		tagsError["error"] = "true"
+		t.getHistogram(metricName+".duration.micros", tagsError).Update(span.Duration.Nanoseconds() / 1000)
+	} else {
+		t.getHistogram(metricName+".duration.micros", tags).Update(span.Duration.Nanoseconds() / 1000)
+	}
+
 	t.getCounter(metricName+".total_time.millis", tags).Inc(span.Duration.Nanoseconds() / 1000000)
 	t.getCounter(metricName+".invocation", tags).Inc(1)
 	errors := t.getCounter(metricName+".error", tags)
