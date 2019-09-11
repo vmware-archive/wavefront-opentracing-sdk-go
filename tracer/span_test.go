@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	opentracing "github.com/opentracing/opentracing-go"
+	"github.com/opentracing/opentracing-go"
 	"github.com/opentracing/opentracing-go/ext"
 	"github.com/stretchr/testify/assert"
 )
@@ -158,4 +158,20 @@ func TestSamplingError(t *testing.T) {
 	ext.Error.Set(span, true)
 	span.Finish()
 	assert.Equal(t, 1, len(reporter.getSampledSpans()), "error tag should turn on sampling")
+}
+
+func TestEmptySpanTag(t *testing.T) {
+	span := spanImpl{}
+	span.SetTag("key", "")
+	found := getAppTag("key", span.raw.Tags)
+	assert.Equal(t, found, false)
+}
+
+func getAppTag(key string, tags map[string]interface{}) bool {
+	if len(tags) > 0 {
+		if _, found := tags[key]; found {
+			return true
+		}
+	}
+	return false
 }
