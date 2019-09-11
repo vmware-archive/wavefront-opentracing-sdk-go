@@ -214,7 +214,7 @@ func (t *reporter) reportInternal(span tracer.RawSpan) {
 }
 
 func (t *reporter) copyTags(oriTags map[string]string) map[string]string {
-	newTags := make(map[string]string)
+	newTags := make(map[string]string, len(oriTags) + 1)
 	for key, value := range oriTags {
 		newTags[key] = value
 	}
