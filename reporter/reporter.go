@@ -213,6 +213,14 @@ func (t *reporter) reportInternal(span tracer.RawSpan) {
 	}
 }
 
+func (t *reporter) copyTag(oriTags map[string]string) map[string]string {
+	newTags := make(map[string]string)
+	for key, value := range oriTags {
+		newTags[key] = value
+	}
+	return newTags
+}
+
 func (t *reporter) reportDerivedMetrics(span tracer.RawSpan) {
 	// override application and service name if tag present
 	appName, appFound := getAppTag("application", t.application.Application, span.Tags)
@@ -230,11 +238,7 @@ func (t *reporter) reportDerivedMetrics(span tracer.RawSpan) {
 
 	v, found := getAppTag("error", "false", span.Tags)
 	if found && v == "true" {
-		tagsError := t.application.Map()
-		tagsError["operationName"] = span.Operation
-		tagsError["component"] = span.Component
-		replaceTag(tagsError, "application", appName, appFound)
-		replaceTag(tagsError, "service", serviceName, svcFound)
+		tagsError := t.copyTag(tags)
 		tagsError["error"] = "true"
 		t.getHistogram(metricName+".duration.micros", tagsError).Update(span.Duration.Nanoseconds() / 1000)
 	} else {
