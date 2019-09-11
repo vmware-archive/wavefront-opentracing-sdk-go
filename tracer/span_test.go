@@ -1,7 +1,6 @@
 package tracer
 
 import (
-	"fmt"
 	"testing"
 	"time"
 
@@ -164,15 +163,15 @@ func TestSamplingError(t *testing.T) {
 func TestEmptySpanTag(t *testing.T) {
 	span := spanImpl{}
 	span.SetTag("key", "")
-	_, ok := getAppTag("key", "true", span.raw.Tags)
-	assert.Equal(t, ok, false)
+	found := getAppTag("key", span.raw.Tags)
+	assert.Equal(t, found, false)
 }
 
-func getAppTag(key, defaultVal string, tags map[string]interface{}) (string, bool) {
+func getAppTag(key string, tags map[string]interface{}) bool {
 	if len(tags) > 0 {
-		if v, found := tags[key]; found {
-			return fmt.Sprint(v), true
+		if _, found := tags[key]; found {
+			return true
 		}
 	}
-	return defaultVal, false
+	return false
 }
