@@ -214,7 +214,7 @@ func (t *reporter) reportInternal(span tracer.RawSpan) {
 }
 
 func (t *reporter) copyTags(oriTags map[string]string) map[string]string {
-	newTags := make(map[string]string, len(oriTags) + 1)
+	newTags := make(map[string]string, len(oriTags)+1)
 	for key, value := range oriTags {
 		newTags[key] = value
 	}
@@ -238,7 +238,7 @@ func (t *reporter) reportDerivedMetrics(span tracer.RawSpan) {
 
 	v, found := getAppTag("error", "false", span.Tags)
 	if found && v == "true" {
-		tagsError := t.copyTag(tags)
+		tagsError := t.copyTags(tags)
 		tagsError["error"] = "true"
 		t.getHistogram(metricName+".duration.micros", tagsError).Update(span.Duration.Nanoseconds() / 1000)
 	} else {
