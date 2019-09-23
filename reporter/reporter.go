@@ -43,6 +43,7 @@ type reporter struct {
 	spansReceived  metrics.Counter
 	spansDropped   metrics.Counter
 	spansDiscarded metrics.Counter
+	redMetricsCustomTagKeys []string
 }
 
 // Option allow WavefrontSpanReporter customization
@@ -75,6 +76,12 @@ func LogPercent(percent float32) Option {
 	}
 }
 
+func redMetricsCustomTagKeys(redMetricsCustomTagKeys []string) Option {
+	return func(args *reporter) {
+		args.redMetricsCustomTagKeys = redMetricsCustomTagKeys
+	}
+}
+
 // New returns a WavefrontSpanReporter for the given `sender`.
 func New(sender senders.Sender, app application.Tags, setters ...Option) WavefrontSpanReporter {
 	r := &reporter{
@@ -83,6 +90,7 @@ func New(sender senders.Sender, app application.Tags, setters ...Option) Wavefro
 		application: app,
 		logPercent:  0.1,
 		bufferSize:  50000,
+		redMetricsCustomTagKeys: nil,
 	}
 
 	for _, setter := range setters {
@@ -235,6 +243,14 @@ func (t *reporter) reportDerivedMetrics(span tracer.RawSpan) {
 	tags["component"] = span.Component
 	replaceTag(tags, "application", appName, appFound)
 	replaceTag(tags, "service", serviceName, svcFound)
+
+	if t.redMetricsCustomTagKeys != nil {
+		for _, key := range t.redMetricsCustomTagKeys {
+			if value, found := getAppTag(key, "", span.Tags); found {
+				tags[key] = value
+			}
+		}
+	}
 
 	v, found := getAppTag("error", "false", span.Tags)
 	if found && v == "true" {
