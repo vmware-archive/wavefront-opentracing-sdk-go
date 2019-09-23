@@ -77,7 +77,7 @@ func LogPercent(percent float32) Option {
 }
 
 // Custom RED metrics tags
-func redMetricsCustomTagKeys(redMetricsCustomTagKeys []string) Option {
+func RedMetricsCustomTagKeys(redMetricsCustomTagKeys []string) Option {
 	return func(args *reporter) {
 		args.redMetricsCustomTagKeys = redMetricsCustomTagKeys
 	}
