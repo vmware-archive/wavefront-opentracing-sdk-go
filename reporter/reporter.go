@@ -37,12 +37,12 @@ type reporter struct {
 	derivedReporter  reporting.WavefrontMetricsReporter
 	internalReporter reporting.WavefrontMetricsReporter
 
-	queueSize      metrics.Gauge
-	remCapacity    metrics.Gauge
-	errorsCount    metrics.Counter
-	spansReceived  metrics.Counter
-	spansDropped   metrics.Counter
-	spansDiscarded metrics.Counter
+	queueSize               metrics.Gauge
+	remCapacity             metrics.Gauge
+	errorsCount             metrics.Counter
+	spansReceived           metrics.Counter
+	spansDropped            metrics.Counter
+	spansDiscarded          metrics.Counter
 	redMetricsCustomTagKeys []string
 }
 
@@ -86,11 +86,11 @@ func redMetricsCustomTagKeys(redMetricsCustomTagKeys []string) Option {
 // New returns a WavefrontSpanReporter for the given `sender`.
 func New(sender senders.Sender, app application.Tags, setters ...Option) WavefrontSpanReporter {
 	r := &reporter{
-		sender:      sender,
-		source:      hostname(),
-		application: app,
-		logPercent:  0.1,
-		bufferSize:  50000,
+		sender:                  sender,
+		source:                  hostname(),
+		application:             app,
+		logPercent:              0.1,
+		bufferSize:              50000,
 		redMetricsCustomTagKeys: nil,
 	}
 
