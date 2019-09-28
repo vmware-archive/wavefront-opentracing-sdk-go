@@ -91,7 +91,6 @@ func New(sender senders.Sender, app application.Tags, setters ...Option) Wavefro
 		application:             app,
 		logPercent:              0.1,
 		bufferSize:              50000,
-		redMetricsCustomTagKeys: nil,
 	}
 
 	for _, setter := range setters {
@@ -246,14 +245,14 @@ func (t *reporter) reportDerivedMetrics(span tracer.RawSpan) {
 	replaceTag(tags, "service", serviceName, svcFound)
 
 	redMetricsCustomTags := t.application.Map()
-	if t.redMetricsCustomTagKeys != nil {
+	if len(t.redMetricsCustomTagKeys) > 0 {
 		for _, key := range t.redMetricsCustomTagKeys {
 			if value, found := getAppTag(key, "", span.Tags); found {
 				tags[key] = value
 				redMetricsCustomTags[key] = value
 			}
 		}
-		t.heartbeater.Send(redMetricsCustomTags)
+		t.heartbeater.AddCustomTags(redMetricsCustomTags)
 	}
 
 	v, found := getAppTag("error", "false", span.Tags)
