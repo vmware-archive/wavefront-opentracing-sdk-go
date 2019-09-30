@@ -244,15 +244,19 @@ func (t *reporter) reportDerivedMetrics(span tracer.RawSpan) {
 	replaceTag(tags, "application", appName, appFound)
 	replaceTag(tags, "service", serviceName, svcFound)
 
-	redMetricsCustomTags := t.application.Map()
+	redMetricsCustomTags := make(map[string]string)
+	customTagMatch := false
 	if len(t.redMetricsCustomTagKeys) > 0 {
 		for _, key := range t.redMetricsCustomTagKeys {
 			if value, found := getAppTag(key, "", span.Tags); found {
 				tags[key] = value
 				redMetricsCustomTags[key] = value
+				customTagMatch = true
 			}
 		}
-		t.heartbeater.AddCustomTags(redMetricsCustomTags)
+		if customTagMatch {
+			t.heartbeater.AddCustomTags(redMetricsCustomTags)
+		}
 	}
 
 	v, found := getAppTag("error", "false", span.Tags)
