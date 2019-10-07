@@ -244,9 +244,9 @@ func (t *reporter) reportDerivedMetrics(span tracer.RawSpan) {
 	replaceTag(tags, "application", appName, appFound)
 	replaceTag(tags, "service", serviceName, svcFound)
 
-	redMetricsCustomTags := make(map[string]string)
-	customTagMatch := false
 	if len(t.redMetricsCustomTagKeys) > 0 {
+		redMetricsCustomTags := make(map[string]string)
+		customTagMatch := false
 		for _, key := range t.redMetricsCustomTagKeys {
 			if value, found := getAppTag(key, "", span.Tags); found {
 				tags[key] = value
