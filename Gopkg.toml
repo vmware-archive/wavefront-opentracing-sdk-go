@@ -12,4 +12,4 @@
 
 [[override]]
   name = "github.com/wavefronthq/wavefront-sdk-go"
-  revision = "adcaf542523713024a82dc4dc2c470f19d65b601"
+  revision = "f00573cbdf5db675a3850fdfc9f99e54011dad63"

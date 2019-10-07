@@ -37,12 +37,13 @@ type reporter struct {
 	derivedReporter  reporting.WavefrontMetricsReporter
 	internalReporter reporting.WavefrontMetricsReporter
 
-	queueSize      metrics.Gauge
-	remCapacity    metrics.Gauge
-	errorsCount    metrics.Counter
-	spansReceived  metrics.Counter
-	spansDropped   metrics.Counter
-	spansDiscarded metrics.Counter
+	queueSize               metrics.Gauge
+	remCapacity             metrics.Gauge
+	errorsCount             metrics.Counter
+	spansReceived           metrics.Counter
+	spansDropped            metrics.Counter
+	spansDiscarded          metrics.Counter
+	redMetricsCustomTagKeys []string
 }
 
 // Option allow WavefrontSpanReporter customization
@@ -72,6 +73,13 @@ func LogPercent(percent float32) Option {
 			percent = 1.0
 		}
 		args.logPercent = percent
+	}
+}
+
+// Custom RED metrics tags
+func RedMetricsCustomTagKeys(redMetricsCustomTagKeys []string) Option {
+	return func(args *reporter) {
+		args.redMetricsCustomTagKeys = redMetricsCustomTagKeys
 	}
 }
 
@@ -235,6 +243,21 @@ func (t *reporter) reportDerivedMetrics(span tracer.RawSpan) {
 	tags["component"] = span.Component
 	replaceTag(tags, "application", appName, appFound)
 	replaceTag(tags, "service", serviceName, svcFound)
+
+	if len(t.redMetricsCustomTagKeys) > 0 {
+		redMetricsCustomTags := make(map[string]string)
+		customTagMatch := false
+		for _, key := range t.redMetricsCustomTagKeys {
+			if value, found := getAppTag(key, "", span.Tags); found {
+				tags[key] = value
+				redMetricsCustomTags[key] = value
+				customTagMatch = true
+			}
+		}
+		if customTagMatch {
+			t.heartbeater.AddCustomTags(redMetricsCustomTags)
+		}
+	}
 
 	v, found := getAppTag("error", "false", span.Tags)
 	if found && v == "true" {
