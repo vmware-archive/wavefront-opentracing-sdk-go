@@ -86,11 +86,11 @@ func RedMetricsCustomTagKeys(redMetricsCustomTagKeys []string) Option {
 // New returns a WavefrontSpanReporter for the given `sender`.
 func New(sender senders.Sender, app application.Tags, setters ...Option) WavefrontSpanReporter {
 	r := &reporter{
-		sender:                  sender,
-		source:                  hostname(),
-		application:             app,
-		logPercent:              0.1,
-		bufferSize:              50000,
+		sender:      sender,
+		source:      hostname(),
+		application: app,
+		logPercent:  0.1,
+		bufferSize:  50000,
 	}
 
 	for _, setter := range setters {
