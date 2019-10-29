@@ -185,12 +185,11 @@ func TestSpanImpl_FinishWithOptions(t *testing.T) {
 	reporter := NewInMemoryReporter()
 	tracer := New(reporter)
 	sp := tracer.StartSpan("foobar")
-	//sp.LogKV("foo", "bar")
 	sp.FinishWithOptions(opentracing.FinishOptions{
-		LogRecords:[]opentracing.LogRecord{
+		LogRecords: []opentracing.LogRecord{
 			{
 				Timestamp: time.Now(),
-				Fields: []log.Field {
+				Fields: []log.Field{
 					log.String("foo", "bar"),
 				},
 			},
