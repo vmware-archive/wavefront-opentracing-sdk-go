@@ -1,6 +1,7 @@
 package tracer
 
 import (
+	"github.com/opentracing/opentracing-go/log"
 	"testing"
 	"time"
 
@@ -165,6 +166,41 @@ func TestEmptySpanTag(t *testing.T) {
 	span.SetTag("key", "")
 	found := getAppTag("key", span.raw.Tags)
 	assert.Equal(t, found, false)
+}
+
+func TestSpanImpl_LogKV(t *testing.T) {
+	reporter := NewInMemoryReporter()
+	tracer := New(reporter)
+	sp := tracer.StartSpan("foobar")
+	sp.LogKV("foo", "bar")
+	sp.Finish()
+	assert.Equal(t, 1, len(reporter.spans), "should contain exactly one span")
+	assert.Equal(t, 1, len(reporter.spans[0].Logs), "should contain exactly one spanlog")
+	assert.Equal(t, 1, len(reporter.spans[0].Logs[0].Fields), "should contain exactly one spanlog field")
+	assert.Equal(t, "foo", reporter.spans[0].Logs[0].Fields[0].Key(), "wrong spanlog key")
+	assert.Equal(t, "bar", reporter.spans[0].Logs[0].Fields[0].Value(), "wrong spanlog value")
+}
+
+func TestSpanImpl_FinishWithOptions(t *testing.T) {
+	reporter := NewInMemoryReporter()
+	tracer := New(reporter)
+	sp := tracer.StartSpan("foobar")
+	//sp.LogKV("foo", "bar")
+	sp.FinishWithOptions(opentracing.FinishOptions{
+		LogRecords:[]opentracing.LogRecord{
+			{
+				Timestamp: time.Now(),
+				Fields: []log.Field {
+					log.String("foo", "bar"),
+				},
+			},
+		},
+	})
+	assert.Equal(t, 1, len(reporter.spans), "should contain exactly one span")
+	assert.Equal(t, 1, len(reporter.spans[0].Logs), "should contain exactly one spanlog")
+	assert.Equal(t, 1, len(reporter.spans[0].Logs[0].Fields), "should contain exactly one spanlog field")
+	assert.Equal(t, "foo", reporter.spans[0].Logs[0].Fields[0].Key(), "wrong spanlog key")
+	assert.Equal(t, "bar", reporter.spans[0].Logs[0].Fields[0].Value(), "wrong spanlog value")
 }
 
 func getAppTag(key string, tags map[string]interface{}) bool {
