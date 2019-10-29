@@ -95,7 +95,7 @@ func (s *spanImpl) SetTag(key string, value interface{}) opentracing.Span {
 }
 
 func (s *spanImpl) LogKV(keyValues ...interface{}) {
-	fields, err := log.InterleavedKVToFields(keyValues)
+	fields, err := log.InterleavedKVToFields(keyValues...)
 	if err != nil {
 		return
 	}
@@ -144,6 +144,10 @@ func (s *spanImpl) FinishWithOptions(opts opentracing.FinishOptions) {
 		finishTime = time.Now()
 	}
 	duration := finishTime.Sub(s.raw.Start)
+
+	if len(opts.LogRecords) > 0 {
+		s.raw.Logs = append(s.raw.Logs, opts.LogRecords...)
+	}
 
 	s.Lock()
 	defer s.Unlock()
