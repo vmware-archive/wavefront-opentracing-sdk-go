@@ -48,8 +48,8 @@ func TestBaggageItems(t *testing.T) {
 	// Create parentCtx with baggage items
 	reporter := NewInMemoryReporter()
 	tracer := New(reporter)
-	baggage := map[string]string {
-		"foo": "bar",
+	baggage := map[string]string{
+		"foo":  "bar",
 		"user": "name",
 	}
 	parent_ctx := SpanContext{
@@ -63,7 +63,7 @@ func TestBaggageItems(t *testing.T) {
 	assert.Equal(t, "name", child.BaggageItem("user"))
 
 	// parent and follows
-	items := map[string]string {
+	items := map[string]string{
 		"tracker": "id",
 		"db.name": "name",
 	}
