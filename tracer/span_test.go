@@ -44,6 +44,52 @@ func TestSpan_Baggage(t *testing.T) {
 	assert.Equal(t, 2, len(spans[0].Context.Baggage))
 }
 
+func TestBaggageItems(t *testing.T) {
+	// Create parentCtx with baggage items
+	reporter := NewInMemoryReporter()
+	tracer := New(reporter)
+	baggage := map[string]string {
+		"foo": "bar",
+		"user": "name",
+	}
+	parent_ctx := SpanContext{
+		TraceID: "traceId",
+		SpanID:  "spanId",
+		Sampled: nil,
+		Baggage: baggage,
+	}
+	child := tracer.StartSpan("test", opentracing.ChildOf(parent_ctx))
+	assert.Equal(t, "bar", child.BaggageItem("foo"))
+	assert.Equal(t, "name", child.BaggageItem("user"))
+
+	// parent and follows
+	items := map[string]string {
+		"tracker": "id",
+		"db.name": "name",
+	}
+	follows_ctx := SpanContext{
+		TraceID: "traceId",
+		SpanID:  "spanId",
+		Sampled: nil,
+		Baggage: items,
+	}
+	follower := tracer.StartSpan("follow", opentracing.ChildOf(parent_ctx),
+		opentracing.FollowsFrom(follows_ctx))
+	assert.Equal(t, "bar", follower.BaggageItem("foo"))
+	assert.Equal(t, "id", follower.BaggageItem("tracker"))
+	assert.Equal(t, "id", follower.BaggageItem("tracker"))
+	assert.Equal(t, "name", follower.BaggageItem("db.name"))
+
+	// validate root span
+	reporter.Reset()
+	span := tracer.StartSpan("x")
+	span.Finish()
+	spans := reporter.getSpans()
+	assert.Equal(t, 1, len(spans))
+	assert.NotNil(t, spans[0].Context.Baggage)
+	assert.Empty(t, spans[0].Context.Baggage)
+}
+
 func TestSampling(t *testing.T) {
 	reporter := NewInMemoryReporter()
 	tracer := New(reporter)
