@@ -83,8 +83,13 @@ func (t *WavefrontTracer) StartSpan(operationName string, opts ...opentracing.St
 	var firstChildOfRef SpanContext
 	var firstFollowsFromRef SpanContext
 	var refCtx SpanContext
+	l := len(options.References)
+	sp.raw.Context.Baggage = make(map[string]string, l)
 
 	for _, ref := range options.References {
+		for k, v := range ref.ReferencedContext.(SpanContext).Baggage {
+			sp.raw.Context.Baggage[k] = v
+		}
 		switch ref.Type {
 		case opentracing.ChildOfRef:
 			if len(firstChildOfRef.TraceID) == 0 {
@@ -109,12 +114,6 @@ func (t *WavefrontTracer) StartSpan(operationName string, opts ...opentracing.St
 		sp.raw.Context.Sampled = refCtx.Sampled
 		sp.raw.ParentSpanID = refCtx.SpanID
 
-		if l := len(refCtx.Baggage); l > 0 {
-			sp.raw.Context.Baggage = make(map[string]string, l)
-			for k, v := range refCtx.Baggage {
-				sp.raw.Context.Baggage[k] = v
-			}
-		}
 	} else {
 		// indicates a root span and that no decision has been inherited from a parent span.
 		// allocate new trace and span ids and perform sampling.
