@@ -22,9 +22,9 @@ type Sampler interface {
 
 // WavefrontTracer implements the OpenTracing `Tracer` interface.
 type WavefrontTracer struct {
-	textPropagator     *textMapPropagator
-	binaryPropagator   *binaryPropagator
-	accessorPropagator *accessorPropagator
+	textPropagator            *textMapPropagator
+	binaryPropagator          *binaryPropagator
+	accessorPropagator        *accessorPropagator
 	jaegerWavefrontPropagator *jaegerWavefrontPropagator
 
 	earlySamplers []Sampler
