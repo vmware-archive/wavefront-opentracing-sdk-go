@@ -25,6 +25,7 @@ type WavefrontTracer struct {
 	textPropagator     *textMapPropagator
 	binaryPropagator   *binaryPropagator
 	accessorPropagator *accessorPropagator
+	jaegerWavefrontPropagator *jaegerWavefrontPropagator
 
 	earlySamplers []Sampler
 	lateSamplers  []Sampler
@@ -54,6 +55,7 @@ func New(reporter SpanReporter, options ...Option) opentracing.Tracer {
 	tracer.textPropagator = &textMapPropagator{tracer}
 	tracer.binaryPropagator = &binaryPropagator{tracer}
 	tracer.accessorPropagator = &accessorPropagator{tracer}
+	tracer.jaegerWavefrontPropagator = &jaegerWavefrontPropagator{"", "", tracer}
 
 	for _, option := range options {
 		option(tracer)
@@ -175,6 +177,9 @@ func (t *WavefrontTracer) Inject(sc opentracing.SpanContext, format interface{},
 	if _, ok := format.(delegatorType); ok {
 		return t.accessorPropagator.Inject(sc, carrier)
 	}
+	if _, ok := format.(jaegerWavefrontPropagator); ok {
+		return t.jaegerWavefrontPropagator.Inject(sc, carrier)
+	}
 	return opentracing.ErrUnsupportedFormat
 }
 
@@ -187,6 +192,9 @@ func (t *WavefrontTracer) Extract(format interface{}, carrier interface{}) (open
 	}
 	if _, ok := format.(delegatorType); ok {
 		return t.accessorPropagator.Extract(carrier)
+	}
+	if _, ok := format.(jaegerWavefrontPropagator); ok {
+		return t.jaegerWavefrontPropagator.Extract(carrier)
 	}
 	return nil, opentracing.ErrUnsupportedFormat
 }

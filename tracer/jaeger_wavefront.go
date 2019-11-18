@@ -17,6 +17,7 @@ const (
 type jaegerWavefrontPropagator struct {
 	traceIdHeader string
 	baggagePrefix string
+	tracer *WavefrontTracer
 }
 
 func (p *jaegerWavefrontPropagator) Inject(spanContext opentracing.SpanContext, opaqueCarrier interface{}) error {
