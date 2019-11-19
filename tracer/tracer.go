@@ -169,34 +169,40 @@ type delegatorType struct{}
 var Delegator delegatorType
 
 func (t *WavefrontTracer) Inject(sc opentracing.SpanContext, format interface{}, carrier interface{}) error {
-	log.Println("----------------Inject Format---------------")
 	switch format {
 	case opentracing.TextMap, opentracing.HTTPHeaders:
+		log.Println("----------------Inject Format---------------: ", 1)
 		return t.textPropagator.Inject(sc, carrier)
 	case opentracing.Binary:
+		log.Println("----------------Inject Format---------------: ", 2)
 		return t.binaryPropagator.Inject(sc, carrier)
 	}
 	if _, ok := format.(delegatorType); ok {
+		log.Println("----------------Inject Format---------------: ", 3)
 		return t.accessorPropagator.Inject(sc, carrier)
 	}
 	if _, ok := format.(jaegerWavefrontPropagator); ok {
+		log.Println("----------------Inject Format---------------: JAEGER!")
 		return t.jaegerWavefrontPropagator.Inject(sc, carrier)
 	}
 	return opentracing.ErrUnsupportedFormat
 }
 
 func (t *WavefrontTracer) Extract(format interface{}, carrier interface{}) (opentracing.SpanContext, error) {
-	log.Println("-------------Extract Format-----------", format)
 	switch format {
 	case opentracing.TextMap, opentracing.HTTPHeaders:
+		log.Println("-------------Extract Format-----------", 1)
 		return t.textPropagator.Extract(carrier)
 	case opentracing.Binary:
+		log.Println("-------------Extract Format-----------", 2)
 		return t.binaryPropagator.Extract(carrier)
 	}
 	if _, ok := format.(delegatorType); ok {
+		log.Println("-------------Extract Format-----------", 3)
 		return t.accessorPropagator.Extract(carrier)
 	}
 	if _, ok := format.(jaegerWavefrontPropagator); ok {
+		log.Println("-------------Extract Format-----------: JAEGER!")
 		return t.jaegerWavefrontPropagator.Extract(carrier)
 	}
 	return nil, opentracing.ErrUnsupportedFormat
