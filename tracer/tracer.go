@@ -4,6 +4,7 @@ package tracer
 import (
 	"io"
 	"time"
+	"log"
 
 	"github.com/opentracing/opentracing-go"
 )
@@ -168,6 +169,7 @@ type delegatorType struct{}
 var Delegator delegatorType
 
 func (t *WavefrontTracer) Inject(sc opentracing.SpanContext, format interface{}, carrier interface{}) error {
+	log.Println("----------------Inject Format---------------")
 	switch format {
 	case opentracing.TextMap, opentracing.HTTPHeaders:
 		return t.textPropagator.Inject(sc, carrier)
@@ -184,6 +186,7 @@ func (t *WavefrontTracer) Inject(sc opentracing.SpanContext, format interface{},
 }
 
 func (t *WavefrontTracer) Extract(format interface{}, carrier interface{}) (opentracing.SpanContext, error) {
+	log.Println("-------------Extract Format-----------", format)
 	switch format {
 	case opentracing.TextMap, opentracing.HTTPHeaders:
 		return t.textPropagator.Extract(carrier)
