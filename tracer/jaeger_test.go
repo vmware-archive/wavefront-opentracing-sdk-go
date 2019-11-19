@@ -10,7 +10,7 @@ import (
 
 func TestJaegerWavefrontPropagator_Extract(t *testing.T) {
 	traceIdHeader, baggagePrefix := "uber-trace-id", "uberctx-"
-	jaegerWfPropagator := jaegerWavefrontPropagator{
+	jaegerWfPropagator := JaegerWavefrontPropagator{
 		traceIdHeader: traceIdHeader,
 		baggagePrefix: baggagePrefix,
 	}
@@ -37,7 +37,7 @@ func TestJaegerWavefrontPropagator_Inject(t *testing.T) {
 	traceId := "00000000-0000-0000-3871-de7e09c53ae8"
 	spanId := "00000000-0000-0000-7499-dd16d98ab60e"
 	tmc := opentracing.HTTPHeadersCarrier(http.Header{})
-	jaegerWfPropagator := jaegerWavefrontPropagator{
+	jaegerWfPropagator := JaegerWavefrontPropagator{
 		traceIdHeader: traceIdHeader,
 		baggagePrefix: baggagePrefix,
 	}

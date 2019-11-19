@@ -15,13 +15,13 @@ const (
 	samplingDecisionKey = "sampling-decision"
 )
 
-type jaegerWavefrontPropagator struct {
+type JaegerWavefrontPropagator struct {
 	traceIdHeader string
 	baggagePrefix string
 	tracer        *WavefrontTracer
 }
 
-func (p *jaegerWavefrontPropagator) Inject(spanContext opentracing.SpanContext, opaqueCarrier interface{}) error {
+func (p *JaegerWavefrontPropagator) Inject(spanContext opentracing.SpanContext, opaqueCarrier interface{}) error {
 	sc, ok := spanContext.(SpanContext)
 	if !ok {
 		return opentracing.ErrInvalidSpanContext
@@ -45,7 +45,7 @@ func (p *jaegerWavefrontPropagator) Inject(spanContext opentracing.SpanContext, 
 	return nil
 }
 
-func (p *jaegerWavefrontPropagator) Extract(opaqueCarrier interface{}) (opentracing.SpanContext,
+func (p *JaegerWavefrontPropagator) Extract(opaqueCarrier interface{}) (opentracing.SpanContext,
 	error) {
 	carrier, ok := opaqueCarrier.(opentracing.TextMapReader)
 	if !ok {
@@ -99,7 +99,7 @@ func (p *jaegerWavefrontPropagator) Extract(opaqueCarrier interface{}) (opentrac
 	return result, nil
 }
 
-func (p *jaegerWavefrontPropagator) ContextToTraceIdHeader(spanContext SpanContext) string {
+func (p *JaegerWavefrontPropagator) ContextToTraceIdHeader(spanContext SpanContext) string {
 	var b bytes.Buffer
 	b.WriteString(ConvertUUID(spanContext.TraceID))
 	b.WriteString(":")
@@ -115,7 +115,7 @@ func (p *jaegerWavefrontPropagator) ContextToTraceIdHeader(spanContext SpanConte
 	return b.String()
 }
 
-func (p *jaegerWavefrontPropagator) ContextFromTraceIdHeader(value string) []string {
+func (p *JaegerWavefrontPropagator) ContextFromTraceIdHeader(value string) []string {
 	if value == "" {
 		return nil
 	}
