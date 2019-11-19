@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"github.com/google/uuid"
 	"github.com/opentracing/opentracing-go"
+	"log"
 	"strconv"
 	"strings"
 )
@@ -29,13 +30,18 @@ func (p *jaegerWavefrontPropagator) Inject(spanContext opentracing.SpanContext, 
 	if !ok {
 		return opentracing.ErrInvalidCarrier
 	}
+	log.Println("-------------Inject spanContext-------------: ", sc.TraceID)
+	log.Println("-------------ContextToTraceIdHeader-------------: ", p.ContextToTraceIdHeader(sc))
 	carrier.Set(p.traceIdHeader, p.ContextToTraceIdHeader(sc))
+	log.Println("-------------SC baggage-------------: ")
 	for k, v := range sc.Baggage {
 		carrier.Set(baggagePrefix+k, v)
+		log.Println(baggagePrefix+k, v)
 	}
 	if sc.IsSampled() {
 		carrier.Set(samplingDecisionKey, strconv.FormatBool(*sc.SamplingDecision()))
 	}
+	log.Println("-------------Carrier After Injection-------------: ", carrier)
 	return nil
 }
 
@@ -48,6 +54,7 @@ func (p *jaegerWavefrontPropagator) Extract(opaqueCarrier interface{}) (opentrac
 	result := SpanContext{Baggage: make(map[string]string)}
 	var err error
 	var parentId string
+	log.Println("-------------Extract Carrier-------------: ", carrier)
 	err = carrier.ForeachKey(func(k, v string) error {
 		lowercaseK := strings.ToLower(k)
 		if lowercaseK == p.traceIdHeader {
@@ -86,6 +93,9 @@ func (p *jaegerWavefrontPropagator) Extract(opaqueCarrier interface{}) (opentrac
 	if parentId != "" {
 		result.Baggage[parentIdKey] = parentId
 	}
+	log.Println("-------------Extract Result-------------: ", result.TraceID, result.SpanID,
+		result.IsSampled(),
+		result.Baggage)
 	return result, nil
 }
 
