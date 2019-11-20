@@ -1,18 +1,19 @@
 package tracer
 
 import (
-	"bytes"
 	"github.com/google/uuid"
 	"github.com/opentracing/opentracing-go"
+	jeager "github.com/uber/jaeger-client-go"
 	"log"
 	"strconv"
 	"strings"
 )
 
 const (
-	baggagePrefix       = "baggage-"
-	parentIdKey         = "parent-id"
-	samplingDecisionKey = "sampling-decision"
+	BAGGAGE_PREFIX = "baggage-"
+	TRACE_ID_KEY   = "trace-id"
+	PARENT_ID_KEY         = "parent-id"
+	SAMPLING_DECISION_KEY = "sampling-decision"
 )
 
 type JaegerWavefrontPropagator struct {
@@ -21,25 +22,53 @@ type JaegerWavefrontPropagator struct {
 	tracer        *WavefrontTracer
 }
 
-func (p *JaegerWavefrontPropagator) Inject(spanContext opentracing.SpanContext, opaqueCarrier interface{}) error {
-	sc, ok := spanContext.(SpanContext)
-	if !ok {
-		return opentracing.ErrInvalidSpanContext
+type Setter func(*JaegerWavefrontPropagator)
+
+func WithTraceIdHeader(traceIdHeader string) Setter {
+	return func(args *JaegerWavefrontPropagator) {
+		args.traceIdHeader = traceIdHeader
 	}
+}
+
+func WithBaggagePrefix(baggagePrefix string) Setter {
+	return func(args *JaegerWavefrontPropagator) {
+		args.baggagePrefix = baggagePrefix
+	}
+}
+
+func WithTracer(tracer *WavefrontTracer) Setter {
+	return func(args *JaegerWavefrontPropagator) {
+		args.tracer = tracer
+	}
+}
+
+func NewJaegerWavefrontPropagator(setters ...Setter) *JaegerWavefrontPropagator {
+	j := &JaegerWavefrontPropagator{
+		traceIdHeader: TRACE_ID_KEY,
+		baggagePrefix: BAGGAGE_PREFIX,
+	}
+	for _, setter := range setters {
+		setter(j)
+	}
+	return j
+}
+
+func (p *JaegerWavefrontPropagator) Inject(jeagerSpanContext jeager.SpanContext,
+	opaqueCarrier interface{}) error {
 	carrier, ok := opaqueCarrier.(opentracing.TextMapWriter)
 	if !ok {
 		return opentracing.ErrInvalidCarrier
 	}
-	log.Println("-------------Inject spanContext-------------: ", sc.TraceID)
-	log.Println("-------------ContextToTraceIdHeader-------------: ", p.ContextToTraceIdHeader(sc))
-	carrier.Set(p.traceIdHeader, p.ContextToTraceIdHeader(sc))
+	log.Println("-------------ContextToTraceIdHeader-------------: ", jeagerSpanContext.String())
+	carrier.Set(p.traceIdHeader, jeagerSpanContext.String())
 	log.Println("-------------SC baggage-------------: ")
-	for k, v := range sc.Baggage {
-		carrier.Set(baggagePrefix+k, v)
-		log.Println(baggagePrefix+k, v)
-	}
-	if sc.IsSampled() {
-		carrier.Set(samplingDecisionKey, strconv.FormatBool(*sc.SamplingDecision()))
+	jeagerSpanContext.ForeachBaggageItem(func(k, v string) bool {
+		carrier.Set(p.baggagePrefix+k, v)
+		log.Println(p.baggagePrefix+k, v)
+		return true
+	})
+	if jeagerSpanContext.IsSampled() {
+		carrier.Set(SAMPLING_DECISION_KEY, strconv.FormatBool(jeagerSpanContext.IsSampled()))
 	}
 	log.Println("-------------Carrier After Injection-------------: ", carrier)
 	return nil
@@ -54,7 +83,7 @@ func (p *JaegerWavefrontPropagator) Extract(opaqueCarrier interface{}) (opentrac
 	result := SpanContext{Baggage: make(map[string]string)}
 	var err error
 	var parentId string
-	log.Println("-------------Extract Carrier-------------: ", carrier)
+	log.Println("-------------Extract Carrier-------------: jaeger!!!")
 	err = carrier.ForeachKey(func(k, v string) error {
 		lowercaseK := strings.ToLower(k)
 		if lowercaseK == p.traceIdHeader {
@@ -79,8 +108,8 @@ func (p *JaegerWavefrontPropagator) Extract(opaqueCarrier interface{}) (opentrac
 			} else {
 				return opentracing.ErrSpanContextCorrupted
 			}
-		} else if strings.HasPrefix(lowercaseK, strings.ToLower(baggagePrefix)) {
-			result.Baggage[strings.TrimPrefix(lowercaseK, baggagePrefix)] = v
+		} else if strings.HasPrefix(lowercaseK, strings.ToLower(p.baggagePrefix)) {
+			result.Baggage[strings.TrimPrefix(lowercaseK, p.baggagePrefix)] = v
 		}
 		return nil
 	})
@@ -91,7 +120,7 @@ func (p *JaegerWavefrontPropagator) Extract(opaqueCarrier interface{}) (opentrac
 		return nil, opentracing.ErrSpanContextNotFound
 	}
 	if parentId != "" {
-		result.Baggage[parentIdKey] = parentId
+		result.Baggage[PARENT_ID_KEY] = parentId
 	}
 	log.Println("-------------Extract Result-------------: ", result.TraceID, result.SpanID,
 		result.IsSampled(),
@@ -99,21 +128,21 @@ func (p *JaegerWavefrontPropagator) Extract(opaqueCarrier interface{}) (opentrac
 	return result, nil
 }
 
-func (p *JaegerWavefrontPropagator) ContextToTraceIdHeader(spanContext SpanContext) string {
-	var b bytes.Buffer
-	b.WriteString(ConvertUUID(spanContext.TraceID))
-	b.WriteString(":")
-	b.WriteString(ConvertUUID(spanContext.SpanID))
-	b.WriteString(":")
-	b.WriteString(spanContext.Baggage[parentIdKey])
-	b.WriteString(":")
-	samplingDecision := "0"
-	if spanContext.IsSampled() {
-		samplingDecision = "1"
-	}
-	b.WriteString(samplingDecision)
-	return b.String()
-}
+//func (p *JaegerWavefrontPropagator) ContextToTraceIdHeader(spanContext jeager.SpanContext) string {
+//	var b bytes.Buffer
+//	b.WriteString(ConvertUUID(spanContext.TraceID))
+//	b.WriteString(":")
+//	b.WriteString(ConvertUUID(spanContext.SpanID))
+//	b.WriteString(":")
+//	b.WriteString(spanContext.Baggage[parentIdKey])
+//	b.WriteString(":")
+//	samplingDecision := "0"
+//	if spanContext.IsSampled() {
+//		samplingDecision = "1"
+//	}
+//	b.WriteString(samplingDecision)
+//	return b.String()
+//}
 
 func (p *JaegerWavefrontPropagator) ContextFromTraceIdHeader(value string) []string {
 	if value == "" {
@@ -126,20 +155,20 @@ func (p *JaegerWavefrontPropagator) ContextFromTraceIdHeader(value string) []str
 	return header
 }
 
-func ConvertUUID(id string) string {
-	if id == "" {
-		return ""
-	}
-	str := strings.Join(strings.Split(id, "-"), "")
-	start := 0
-	for i, ch := range str {
-		if ch != '0' {
-			start = i
-			break
-		}
-	}
-	return str[start:]
-}
+//func ConvertUUID(id string) string {
+//	if id == "" {
+//		return ""
+//	}
+//	str := strings.Join(strings.Split(id, "-"), "")
+//	start := 0
+//	for i, ch := range str {
+//		if ch != '0' {
+//			start = i
+//			break
+//		}
+//	}
+//	return str[start:]
+//}
 
 func ToUUID(id string) (string, error) {
 	if len(id) <= 32 {

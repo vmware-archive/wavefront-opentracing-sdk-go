@@ -56,7 +56,7 @@ func New(reporter SpanReporter, options ...Option) opentracing.Tracer {
 	tracer.textPropagator = &textMapPropagator{tracer}
 	tracer.binaryPropagator = &binaryPropagator{tracer}
 	tracer.accessorPropagator = &accessorPropagator{tracer}
-	tracer.jaegerWavefrontPropagator = &JaegerWavefrontPropagator{"", "", tracer}
+	tracer.jaegerWavefrontPropagator = NewJaegerWavefrontPropagator(WithTracer(tracer))
 
 	for _, option := range options {
 		option(tracer)
@@ -181,10 +181,10 @@ func (t *WavefrontTracer) Inject(sc opentracing.SpanContext, format interface{},
 		log.Println("----------------Inject Format---------------: ", 3)
 		return t.accessorPropagator.Inject(sc, carrier)
 	}
-	if _, ok := format.(JaegerWavefrontPropagator); ok {
-		log.Println("----------------Inject Format---------------: JAEGER!")
-		return t.jaegerWavefrontPropagator.Inject(sc, carrier)
-	}
+	//if _, ok := format.(JaegerWavefrontPropagator); ok {
+	//	log.Println("----------------Inject Format---------------: JAEGER!")
+	//	return t.jaegerWavefrontPropagator.Inject(sc, carrier)
+	//}
 	return opentracing.ErrUnsupportedFormat
 }
 
