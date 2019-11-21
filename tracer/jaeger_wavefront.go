@@ -74,24 +74,29 @@ func (p *JaegerWavefrontPropagator) Extract(opaqueCarrier interface{}) (opentrac
 	result := SpanContext{Baggage: make(map[string]string)}
 	var err error
 	var parentId string
-	log.Println("-------------Extract Carrier-------------: jaeger!!!")
+	log.Println("-------------Extract Carrier-------------: jaeger!!!!!!")
 	err = carrier.ForeachKey(func(k, v string) error {
+		log.Println("Key Value in Extracted Carrier: ", k, v)
 		lowercaseK := strings.ToLower(k)
 		if lowercaseK == p.traceIdHeader {
 			traceData := p.ContextFromTraceIdHeader(v)
+			log.Println("-------------Extract Data: ", traceData)
 			if traceData != nil {
 				traceId, err := ToUUID(traceData[0])
+				log.Println("-------------Extract traceId: ", traceId)
 				if err != nil {
 					return opentracing.ErrSpanContextCorrupted
 				}
 				result.TraceID = traceId
 				spanID, err := ToUUID(traceData[1])
+				log.Println("-------------Extract spanId: ", spanID)
 				if err != nil {
 					return opentracing.ErrSpanContextCorrupted
 				}
 				result.SpanID = spanID
 				parentId = result.SpanID
 				decision, err := strconv.ParseBool(traceData[3])
+				log.Println("-------------Extract decision: ", decision)
 				if err != nil {
 					return opentracing.ErrSpanContextCorrupted
 				}
@@ -100,17 +105,22 @@ func (p *JaegerWavefrontPropagator) Extract(opaqueCarrier interface{}) (opentrac
 				return opentracing.ErrSpanContextCorrupted
 			}
 		} else if strings.HasPrefix(lowercaseK, strings.ToLower(p.baggagePrefix)) {
+			log.Println("-------------Extract other baggage: ", strings.TrimPrefix(lowercaseK,
+				p.baggagePrefix), v)
 			result.Baggage[strings.TrimPrefix(lowercaseK, p.baggagePrefix)] = v
 		}
 		return nil
 	})
 	if err != nil {
+		log.Println("here1")
 		return nil, err
 	}
 	if len(result.SpanID) == 0 && len(result.TraceID) == 0 {
+		log.Println("here2")
 		return nil, opentracing.ErrSpanContextNotFound
 	}
 	if parentId != "" {
+		log.Println("-------------Extract has parentId-------------: ")
 		result.Baggage[PARENT_ID_KEY] = parentId
 	}
 	log.Println("-------------Extract Result-------------: ", result.TraceID, result.SpanID,
