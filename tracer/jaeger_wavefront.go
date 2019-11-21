@@ -3,7 +3,7 @@ package tracer
 import (
 	"github.com/google/uuid"
 	"github.com/opentracing/opentracing-go"
-	jeager "github.com/uber/jaeger-client-go"
+	"github.com/uber/jaeger-client-go"
 	"log"
 	"strconv"
 	"strings"
@@ -24,51 +24,43 @@ type JaegerWavefrontPropagator struct {
 
 type Setter func(*JaegerWavefrontPropagator)
 
-func WithTraceIdHeader(traceIdHeader string) Setter {
-	return func(args *JaegerWavefrontPropagator) {
-		args.traceIdHeader = traceIdHeader
-	}
+func (j *JaegerWavefrontPropagator) WithBaggagePrefix(baggagePrefix string) {
+	j.baggagePrefix = baggagePrefix
 }
 
-func WithBaggagePrefix(baggagePrefix string) Setter {
-	return func(args *JaegerWavefrontPropagator) {
-		args.baggagePrefix = baggagePrefix
-	}
+func (j *JaegerWavefrontPropagator) WithTraceIdHeader(traceIdHeader string) {
+	j.traceIdHeader = traceIdHeader
 }
 
-func WithTracer(tracer *WavefrontTracer) Setter {
-	return func(args *JaegerWavefrontPropagator) {
-		args.tracer = tracer
-	}
-}
-
-func NewJaegerWavefrontPropagator(setters ...Setter) *JaegerWavefrontPropagator {
+func NewJaegerWavefrontPropagator(tracer *WavefrontTracer) *JaegerWavefrontPropagator {
 	j := &JaegerWavefrontPropagator{
 		traceIdHeader: TRACE_ID_KEY,
 		baggagePrefix: BAGGAGE_PREFIX,
-	}
-	for _, setter := range setters {
-		setter(j)
+		tracer: tracer,
 	}
 	return j
 }
 
-func (p *JaegerWavefrontPropagator) Inject(jeagerSpanContext jeager.SpanContext,
+func (p *JaegerWavefrontPropagator) Inject(jaegerSpanContext opentracing.SpanContext,
 	opaqueCarrier interface{}) error {
 	carrier, ok := opaqueCarrier.(opentracing.TextMapWriter)
 	if !ok {
 		return opentracing.ErrInvalidCarrier
 	}
-	log.Println("-------------ContextToTraceIdHeader-------------: ", jeagerSpanContext.String())
-	carrier.Set(p.traceIdHeader, jeagerSpanContext.String())
+	jsc, ok := jaegerSpanContext.(jaeger.SpanContext)
+	if !ok {
+		return opentracing.ErrInvalidCarrier
+	}
+	log.Println("-------------ContextToTraceIdHeader-------------: ", jsc.String())
+	carrier.Set(p.traceIdHeader, jsc.String())
 	log.Println("-------------SC baggage-------------: ")
-	jeagerSpanContext.ForeachBaggageItem(func(k, v string) bool {
+	jsc.ForeachBaggageItem(func(k, v string) bool {
 		carrier.Set(p.baggagePrefix+k, v)
 		log.Println(p.baggagePrefix+k, v)
 		return true
 	})
-	if jeagerSpanContext.IsSampled() {
-		carrier.Set(SAMPLING_DECISION_KEY, strconv.FormatBool(jeagerSpanContext.IsSampled()))
+	if jsc.IsSampled() {
+		carrier.Set(SAMPLING_DECISION_KEY, strconv.FormatBool(jsc.IsSampled()))
 	}
 	log.Println("-------------Carrier After Injection-------------: ", carrier)
 	return nil
