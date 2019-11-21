@@ -1,9 +1,9 @@
 package tracer
 
 import (
+	"bytes"
 	"github.com/google/uuid"
 	"github.com/opentracing/opentracing-go"
-	"github.com/uber/jaeger-client-go"
 	"log"
 	"strconv"
 	"strings"
@@ -41,26 +41,25 @@ func NewJaegerWavefrontPropagator(tracer *WavefrontTracer) *JaegerWavefrontPropa
 	return j
 }
 
-func (p *JaegerWavefrontPropagator) Inject(jaegerSpanContext opentracing.SpanContext,
-	opaqueCarrier interface{}) error {
+func (p *JaegerWavefrontPropagator) Inject(spanContext opentracing.SpanContext, opaqueCarrier interface{}) error {
 	carrier, ok := opaqueCarrier.(opentracing.TextMapWriter)
 	if !ok {
 		return opentracing.ErrInvalidCarrier
 	}
-	jsc, ok := jaegerSpanContext.(jaeger.SpanContext)
+	sc, ok := spanContext.(SpanContext)
 	if !ok {
-		return opentracing.ErrInvalidCarrier
+		return opentracing.ErrInvalidSpanContext
 	}
-	log.Println("-------------ContextToTraceIdHeader-------------: ", jsc.String())
-	carrier.Set(p.traceIdHeader, jsc.String())
+	log.Println("-------------ContextToTraceIdHeader-------------: ", contextToTraceIdHeader(sc))
+	carrier.Set(p.traceIdHeader, contextToTraceIdHeader(sc))
 	log.Println("-------------SC baggage-------------: ")
-	jsc.ForeachBaggageItem(func(k, v string) bool {
+	sc.ForeachBaggageItem(func(k, v string) bool {
 		carrier.Set(p.baggagePrefix+k, v)
 		log.Println(p.baggagePrefix+k, v)
 		return true
 	})
-	if jsc.IsSampled() {
-		carrier.Set(SAMPLING_DECISION_KEY, strconv.FormatBool(jsc.IsSampled()))
+	if sc.IsSampled() {
+		carrier.Set(SAMPLING_DECISION_KEY, strconv.FormatBool(sc.IsSampled()))
 	}
 	log.Println("-------------Carrier After Injection-------------: ", carrier)
 	return nil
@@ -120,21 +119,21 @@ func (p *JaegerWavefrontPropagator) Extract(opaqueCarrier interface{}) (opentrac
 	return result, nil
 }
 
-//func (p *JaegerWavefrontPropagator) ContextToTraceIdHeader(spanContext jeager.SpanContext) string {
-//	var b bytes.Buffer
-//	b.WriteString(ConvertUUID(spanContext.TraceID))
-//	b.WriteString(":")
-//	b.WriteString(ConvertUUID(spanContext.SpanID))
-//	b.WriteString(":")
-//	b.WriteString(spanContext.Baggage[parentIdKey])
-//	b.WriteString(":")
-//	samplingDecision := "0"
-//	if spanContext.IsSampled() {
-//		samplingDecision = "1"
-//	}
-//	b.WriteString(samplingDecision)
-//	return b.String()
-//}
+func contextToTraceIdHeader(spanContext SpanContext) string {
+	var b bytes.Buffer
+	b.WriteString(convertUUID(spanContext.TraceID))
+	b.WriteString(":")
+	b.WriteString(convertUUID(spanContext.SpanID))
+	b.WriteString(":")
+	b.WriteString(spanContext.Baggage[PARENT_ID_KEY])
+	b.WriteString(":")
+	samplingDecision := "0"
+	if spanContext.IsSampled() {
+		samplingDecision = "1"
+	}
+	b.WriteString(samplingDecision)
+	return b.String()
+}
 
 func (p *JaegerWavefrontPropagator) ContextFromTraceIdHeader(value string) []string {
 	if value == "" {
@@ -147,20 +146,20 @@ func (p *JaegerWavefrontPropagator) ContextFromTraceIdHeader(value string) []str
 	return header
 }
 
-//func ConvertUUID(id string) string {
-//	if id == "" {
-//		return ""
-//	}
-//	str := strings.Join(strings.Split(id, "-"), "")
-//	start := 0
-//	for i, ch := range str {
-//		if ch != '0' {
-//			start = i
-//			break
-//		}
-//	}
-//	return str[start:]
-//}
+func convertUUID(id string) string {
+	if id == "" {
+		return ""
+	}
+	str := strings.Join(strings.Split(id, "-"), "")
+	start := 0
+	for i, ch := range str {
+		if ch != '0' {
+			start = i
+			break
+		}
+	}
+	return str[start:]
+}
 
 func ToUUID(id string) (string, error) {
 	if len(id) <= 32 {
