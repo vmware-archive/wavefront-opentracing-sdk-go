@@ -91,7 +91,8 @@ func (p *JaegerWavefrontPropagator) Extract(opaqueCarrier interface{}) (jaeger.S
 	err := carrier.ForeachKey(func(k, v string) error {
 		lowercaseK := strings.ToLower(k)
 		log.Println("Key Value in Extracted Carrier: ", k, v)
-		log.Println(reflect.TypeOf(lowercaseK), reflect.TypeOf(p.traceIdHeader))
+		log.Println(lowercaseK, reflect.TypeOf(lowercaseK), len(lowercaseK), p.traceIdHeader,
+			reflect.TypeOf(p.traceIdHeader), len(p.traceIdHeader))
 		if lowercaseK == p.traceIdHeader {
 			traceData := p.ContextFromTraceIdHeader(v)
 			log.Println("-------------Extract Data: ", traceData)
