@@ -4,6 +4,7 @@ import (
 	"github.com/opentracing/opentracing-go"
 	otrext "github.com/opentracing/opentracing-go/ext"
 	"github.com/stretchr/testify/assert"
+	"github.com/uber/jaeger-client-go"
 	"log"
 	"net/http"
 	"testing"
@@ -18,20 +19,17 @@ func TestJaegerWavefrontPropagator_Extract(t *testing.T) {
 	carrier[traceIdHeader] = []string{val}
 	ctx, _ := tracer.Extract(JaegerWavefrontPropagator{}, carrier)
 	assert.NotNil(t, ctx)
-	assert.Equal(t, "00000000-0000-0000-3871-de7e09c53ae8", ctx.(SpanContext).TraceID)
-	assert.Equal(t, "00000000-0000-0000-7499-dd16d98ab60e", ctx.(SpanContext).SpanID)
-	assert.Equal(t, "00000000-0000-0000-7499-dd16d98ab60e", ctx.(SpanContext).Baggage["parent-id"])
-	assert.True(t, ctx.(SpanContext).IsSampled())
+	assert.Equal(t, val, ctx.(jaeger.SpanContext).String())
 
 	invalidVal := ":7499dd16d98ab60e:3771de7e09c55ae8:1"
 	invalidCarrier := opentracing.HTTPHeadersCarrier(http.Header{})
 	invalidCarrier[traceIdHeader] = []string{invalidVal}
 	invalidCtx, _ := tracer.Extract(JaegerWavefrontPropagator{}, invalidCarrier)
-	assert.Nil(t, invalidCtx)
+	assert.True(t, !invalidCtx.(jaeger.SpanContext).IsValid())
 }
 
 func TestJaegerWavefrontPropagator_Inject(t *testing.T) {
-	traceIdHeader, baggagePrefix := "Uber-Trace-Id", "Uberctx-"
+	traceIdHeader, baggagePrefix := "uBer-trAcE-id", "Uberctx-"
 	tmc := opentracing.HTTPHeadersCarrier(http.Header{})
 	tracer := New(NewInMemoryReporter(), WithBaggagePrefix(baggagePrefix), WithTraceIdHeader(traceIdHeader))
 	spanContext := SpanContext{
