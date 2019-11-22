@@ -74,14 +74,14 @@ func (p *JaegerWavefrontPropagator) Inject(spanContext jaeger.SpanContext,
 	return nil
 }
 
-func (p *JaegerWavefrontPropagator) Extract(opaqueCarrier interface{}) (jaeger.SpanContext,
+func (p *JaegerWavefrontPropagator) Extract(opaqueCarrier interface{}) (SpanContext,
 	error) {
 	carrier, ok := opaqueCarrier.(opentracing.TextMapReader)
 	if !ok {
-		return jaeger.SpanContext{}, opentracing.ErrInvalidCarrier
+		return SpanContext{}, opentracing.ErrInvalidCarrier
 	}
 
-	var jaegerctx jaeger.SpanContext
+	var spanCtx SpanContext
 	log.Println("-------------Extract Carrier-------------: jaeger!!!!!!")
 	log.Println("-------------Extract jaeger traceIdHeader-------------: ", p.traceIdHeader)
 
@@ -92,12 +92,12 @@ func (p *JaegerWavefrontPropagator) Extract(opaqueCarrier interface{}) (jaeger.S
 			reflect.TypeOf(p.traceIdHeader), len(p.traceIdHeader))
 		if lowercaseK == strings.ToLower(p.traceIdHeader) {
 			err := errors.New("")
-			jaegerctx, err = jaeger.ContextFromString(v)
+			spanCtx, err = contextFromString(v)
 			if err != nil {
 				return opentracing.ErrSpanContextCorrupted
 			}
 
-			//traceData := p.ContextFromTraceIdHeader(v)
+			//traceData := p.contextFromTraceIdHeader(v)
 			//log.Println("-------------Extract Data: ", traceData)
 			//if traceData != nil {
 			//	traceIdStr, err := ToUUID(traceData[0])
@@ -127,19 +127,52 @@ func (p *JaegerWavefrontPropagator) Extract(opaqueCarrier interface{}) (jaeger.S
 		} else if strings.HasPrefix(lowercaseK, strings.ToLower(p.baggagePrefix)) {
 			log.Println("-------------Extract other baggage: ", strings.TrimPrefix(lowercaseK,
 				p.baggagePrefix), v)
-			jaegerctx.WithBaggageItem(strings.TrimPrefix(lowercaseK, p.baggagePrefix), v)
+			spanCtx.WithBaggageItem(strings.TrimPrefix(lowercaseK, p.baggagePrefix), v)
 		}
 		return nil
 	})
 	if err != nil {
 		log.Println("here1")
-		return jaeger.SpanContext{}, err
+		return SpanContext{}, err
 	}
-	if !jaegerctx.IsValid() {
+	if spanCtx.SpanID == "" || spanCtx.TraceID == "" {
 		log.Println("here2")
-		return jaeger.SpanContext{}, opentracing.ErrSpanContextNotFound
+		return SpanContext{}, opentracing.ErrSpanContextNotFound
 	}
-	return jaegerctx, nil
+	return spanCtx, nil
+}
+
+func contextFromString (value string) (SpanContext, error) {
+	var context SpanContext
+	if value == "" {
+		return context, opentracing.ErrSpanContextNotFound
+	}
+	parts := contextFromTraceIdHeader(value)
+	if parts != nil {
+		var err error
+		context.TraceID, err = ToUUID(parts[0])
+		if err != nil {
+			return context, opentracing.ErrSpanContextCorrupted
+		}
+		log.Println("-------------Extract traceId: ", context.TraceID)
+
+		context.SpanID, err = ToUUID(parts[1])
+		if err != nil {
+			return context, opentracing.ErrSpanContextCorrupted
+		}
+		log.Println("-------------Extract spanId: ", context.SpanID)
+
+		context = context.WithBaggageItem(PARENT_ID_KEY, context.SpanID)
+
+		sampled, err := strconv.ParseBool(parts[3])
+		context.Sampled = &sampled
+		if err != nil {
+			return context, opentracing.ErrSpanContextCorrupted
+		}
+		} else {
+			return context, opentracing.ErrSpanContextCorrupted
+		}
+	return context, nil
 }
 
 func contextToTraceIdHeader(spanContext jaeger.SpanContext) string {
@@ -158,7 +191,7 @@ func contextToTraceIdHeader(spanContext jaeger.SpanContext) string {
 	return b.String()
 }
 
-func (p *JaegerWavefrontPropagator) ContextFromTraceIdHeader(value string) []string {
+func contextFromTraceIdHeader(value string) []string {
 	if value == "" {
 		return nil
 	}
