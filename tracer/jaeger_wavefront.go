@@ -88,8 +88,8 @@ func (p *JaegerWavefrontPropagator) Extract(opaqueCarrier interface{}) (jaeger.S
 	log.Println("-------------Extract jaeger traceIdHeader-------------: ", p.traceIdHeader)
 
 	err := carrier.ForeachKey(func(k, v string) error {
-		log.Println("Key Value in Extracted Carrier: ", k, v)
 		lowercaseK := strings.ToLower(k)
+		log.Println("KV in Extracted Carrier[", k, v, "] lowercaseK: ", lowercaseK, p.traceIdHeader)
 		if lowercaseK == p.traceIdHeader {
 			traceData := p.ContextFromTraceIdHeader(v)
 			log.Println("-------------Extract Data: ", traceData)
