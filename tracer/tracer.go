@@ -3,7 +3,6 @@ package tracer
 
 import (
 	"io"
-	"log"
 	"time"
 
 	"github.com/opentracing/opentracing-go"
@@ -32,6 +31,7 @@ type WavefrontTracer struct {
 	earlySamplers []Sampler
 	lateSamplers  []Sampler
 	reporter      SpanReporter
+
 	jeagerPropagatorTraceIdHeader string
 	jeagerPropagatorBaggagePrefix string
 }
@@ -183,26 +183,21 @@ type delegatorType struct{}
 // Delegator is the format to use for DelegatingCarrier.
 var Delegator delegatorType
 
-
 func (t *WavefrontTracer) Inject(sc opentracing.SpanContext, format interface{}, carrier interface{}) error {
 	if _, ok := format.(JaegerWavefrontPropagator); ok {
 		jsc, ok := sc.(jaeger.SpanContext)
 		if !ok {
 			return opentracing.ErrInvalidSpanContext
 		}
-		log.Println("----------------Inject Format---------------: JAEGER!")
 		return t.jaegerWavefrontPropagator.Inject(jsc, carrier)
 	}
 	switch format {
 	case opentracing.TextMap, opentracing.HTTPHeaders:
-		log.Println("----------------Inject Format---------------: ", 1)
 		return t.textPropagator.Inject(sc, carrier)
 	case opentracing.Binary:
-		log.Println("----------------Inject Format---------------: ", 2)
 		return t.binaryPropagator.Inject(sc, carrier)
 	}
 	if _, ok := format.(delegatorType); ok {
-		log.Println("----------------Inject Format---------------: ", 3)
 		return t.accessorPropagator.Inject(sc, carrier)
 	}
 	return opentracing.ErrUnsupportedFormat
@@ -210,19 +205,15 @@ func (t *WavefrontTracer) Inject(sc opentracing.SpanContext, format interface{},
 
 func (t *WavefrontTracer) Extract(format interface{}, carrier interface{}) (opentracing.SpanContext, error) {
 	if _, ok := format.(JaegerWavefrontPropagator); ok {
-		log.Println("-------------Extract Format-----------: JAEGER!")
 		return t.jaegerWavefrontPropagator.Extract(carrier)
 	}
 	switch format {
 	case opentracing.TextMap, opentracing.HTTPHeaders:
-		log.Println("-------------Extract Format-----------", 1)
 		return t.textPropagator.Extract(carrier)
 	case opentracing.Binary:
-		log.Println("-------------Extract Format-----------", 2)
 		return t.binaryPropagator.Extract(carrier)
 	}
 	if _, ok := format.(delegatorType); ok {
-		log.Println("-------------Extract Format-----------", 3)
 		return t.accessorPropagator.Extract(carrier)
 	}
 	return nil, opentracing.ErrUnsupportedFormat

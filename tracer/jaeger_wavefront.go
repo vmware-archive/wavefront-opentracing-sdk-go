@@ -6,15 +6,13 @@ import (
 	"github.com/google/uuid"
 	"github.com/opentracing/opentracing-go"
 	"github.com/uber/jaeger-client-go"
-	"log"
-	"reflect"
 	"strconv"
 	"strings"
 )
 
 const (
-	BAGGAGE_PREFIX = "baggage-"
-	TRACE_ID_KEY   = "trace-id"
+	BAGGAGE_PREFIX        = "baggage-"
+	TRACE_ID_KEY          = "trace-id"
 	PARENT_ID_KEY         = "parent-id"
 	SAMPLING_DECISION_KEY = "sampling-decision"
 )
@@ -39,7 +37,7 @@ func NewJaegerWavefrontPropagator(tracer *WavefrontTracer) *JaegerWavefrontPropa
 	j := &JaegerWavefrontPropagator{
 		traceIdHeader: TRACE_ID_KEY,
 		baggagePrefix: BAGGAGE_PREFIX,
-		tracer: tracer,
+		tracer:        tracer,
 	}
 	return j
 }
@@ -56,21 +54,16 @@ func (p *JaegerWavefrontPropagator) Inject(spanContext jaeger.SpanContext,
 	opaqueCarrier interface{}) error {
 	carrier, ok := opaqueCarrier.(opentracing.TextMapWriter)
 	if !ok {
-		log.Println("inject break because of ctx type")
 		return opentracing.ErrInvalidCarrier
 	}
-	log.Println("-------------ContextToTraceIdHeader-------------: ", contextToTraceIdHeader(spanContext))
 	carrier.Set(p.traceIdHeader, contextToTraceIdHeader(spanContext)) // p.traceIdHeader would be canonical
-	log.Println("-------------SC baggage-------------: ")
 	spanContext.ForeachBaggageItem(func(k, v string) bool {
 		carrier.Set(p.baggagePrefix+k, v)
-		log.Println(p.baggagePrefix+k, v)
 		return true
 	})
 	if spanContext.IsSampled() {
 		carrier.Set(SAMPLING_DECISION_KEY, strconv.FormatBool(spanContext.IsSampled()))
 	}
-	log.Println("-------------Carrier After Injection-------------: ", carrier)
 	return nil
 }
 
@@ -82,67 +75,30 @@ func (p *JaegerWavefrontPropagator) Extract(opaqueCarrier interface{}) (SpanCont
 	}
 
 	var spanCtx SpanContext
-	log.Println("-------------Extract Carrier-------------: jaeger!!!!!!")
-	log.Println("-------------Extract jaeger traceIdHeader-------------: ", p.traceIdHeader)
 
 	err := carrier.ForeachKey(func(k, v string) error {
 		lowercaseK := strings.ToLower(k)
-		log.Println("Key Value in Extracted Carrier: ", k, v)
-		log.Println(lowercaseK, reflect.TypeOf(lowercaseK), len(lowercaseK), p.traceIdHeader,
-			reflect.TypeOf(p.traceIdHeader), len(p.traceIdHeader))
 		if lowercaseK == strings.ToLower(p.traceIdHeader) {
 			err := errors.New("")
 			spanCtx, err = contextFromString(v)
 			if err != nil {
 				return opentracing.ErrSpanContextCorrupted
 			}
-
-			//traceData := p.contextFromTraceIdHeader(v)
-			//log.Println("-------------Extract Data: ", traceData)
-			//if traceData != nil {
-			//	traceIdStr, err := ToUUID(traceData[0])
-			//	if err != nil {
-			//		return opentracing.ErrSpanContextCorrupted
-			//	}
-			//	traceID, err = jaeger.TraceIDFromString(traceIdStr)
-			//	log.Println("-------------Extract traceId: ", traceID)
-			//
-			//	spanIdStr, err := ToUUID(traceData[1])
-			//	if err != nil {
-			//		return opentracing.ErrSpanContextCorrupted
-			//	}
-			//	spanID, err = jaeger.SpanIDFromString(spanIdStr)
-			//	log.Println("-------------Extract spanId: ", spanID)
-			//
-			//	parentID = spanID
-			//
-			//	decision, err := strconv.ParseBool(traceData[3])
-			//	if err != nil {
-			//		return opentracing.ErrSpanContextCorrupted
-			//	}
-			//	log.Println("-------------Extract decision: ", decision)
-			//} else {
-			//	return opentracing.ErrSpanContextCorrupted
-			//}
 		} else if strings.HasPrefix(lowercaseK, strings.ToLower(p.baggagePrefix)) {
-			log.Println("-------------Extract other baggage: ", strings.TrimPrefix(lowercaseK,
-				p.baggagePrefix), v)
 			spanCtx.WithBaggageItem(strings.TrimPrefix(lowercaseK, p.baggagePrefix), v)
 		}
 		return nil
 	})
 	if err != nil {
-		log.Println("here1")
 		return SpanContext{}, err
 	}
 	if spanCtx.SpanID == "" || spanCtx.TraceID == "" {
-		log.Println("here2")
 		return SpanContext{}, opentracing.ErrSpanContextNotFound
 	}
 	return spanCtx, nil
 }
 
-func contextFromString (value string) (SpanContext, error) {
+func contextFromString(value string) (SpanContext, error) {
 	var context SpanContext
 	if value == "" {
 		return context, opentracing.ErrSpanContextNotFound
@@ -154,13 +110,11 @@ func contextFromString (value string) (SpanContext, error) {
 		if err != nil {
 			return context, opentracing.ErrSpanContextCorrupted
 		}
-		log.Println("-------------Extract traceId: ", context.TraceID)
 
 		context.SpanID, err = ToUUID(parts[1])
 		if err != nil {
 			return context, opentracing.ErrSpanContextCorrupted
 		}
-		log.Println("-------------Extract spanId: ", context.SpanID)
 
 		context = context.WithBaggageItem(PARENT_ID_KEY, context.SpanID)
 
@@ -169,9 +123,9 @@ func contextFromString (value string) (SpanContext, error) {
 		if err != nil {
 			return context, opentracing.ErrSpanContextCorrupted
 		}
-		} else {
-			return context, opentracing.ErrSpanContextCorrupted
-		}
+	} else {
+		return context, opentracing.ErrSpanContextCorrupted
+	}
 	return context, nil
 }
 
