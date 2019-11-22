@@ -42,6 +42,14 @@ func NewJaegerWavefrontPropagator(tracer *WavefrontTracer) *JaegerWavefrontPropa
 	return j
 }
 
+func NewJaegerWfPropagator(traceIdHeader string, baggagePrefix string) *JaegerWavefrontPropagator {
+	return &JaegerWavefrontPropagator{
+		traceIdHeader: traceIdHeader,
+		baggagePrefix: baggagePrefix,
+		tracer:        nil,
+	}
+}
+
 func (p *JaegerWavefrontPropagator) Inject(spanContext jaeger.SpanContext,
 	opaqueCarrier interface{}) error {
 	carrier, ok := opaqueCarrier.(opentracing.TextMapWriter)
