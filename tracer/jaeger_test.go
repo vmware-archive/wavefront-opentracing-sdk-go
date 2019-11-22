@@ -2,7 +2,9 @@ package tracer
 
 import (
 	"github.com/opentracing/opentracing-go"
+	otrext "github.com/opentracing/opentracing-go/ext"
 	"github.com/stretchr/testify/assert"
+	"log"
 	"net/http"
 	"testing"
 )
@@ -51,4 +53,21 @@ func TestToUUID(t *testing.T) {
 	id := "ef27b4b9f6e946f5ab2b47bbb24746c5"
 	out, _ := ToUUID(id)
 	assert.Equal(t, "ef27b4b9-f6e9-46f5-ab2b-47bbb24746c5", out)
+}
+
+func NewServerSpan(req *http.Request, spanName string) opentracing.Span {
+	tracer := opentracing.GlobalTracer()
+	parentCtx, err := tracer.Extract(JaegerWavefrontPropagator{}, opentracing.HTTPHeadersCarrier(req.Header))
+	var span opentracing.Span
+	if err == nil { // has parent context
+		span = tracer.StartSpan(spanName, opentracing.ChildOf(parentCtx))
+	} else if err == opentracing.ErrSpanContextNotFound { // no parent
+		span = tracer.StartSpan(spanName)
+	} else {
+		log.Printf("Error in extracting tracer context: %s", err.Error())
+	}
+
+	otrext.SpanKindRPCServer.Set(span)
+
+	return span
 }
