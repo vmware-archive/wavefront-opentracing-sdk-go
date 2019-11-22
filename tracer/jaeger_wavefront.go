@@ -6,6 +6,7 @@ import (
 	"github.com/opentracing/opentracing-go"
 	"github.com/uber/jaeger-client-go"
 	"log"
+	"reflect"
 	"strconv"
 	"strings"
 )
@@ -89,7 +90,8 @@ func (p *JaegerWavefrontPropagator) Extract(opaqueCarrier interface{}) (jaeger.S
 
 	err := carrier.ForeachKey(func(k, v string) error {
 		lowercaseK := strings.ToLower(k)
-		log.Println("KV in Extracted Carrier[", k, v, "] lowercaseK: ", lowercaseK, p.traceIdHeader)
+		log.Println("Key Value in Extracted Carrier: ", k, v)
+		log.Println(reflect.TypeOf(lowercaseK), reflect.TypeOf(p.traceIdHeader))
 		if lowercaseK == p.traceIdHeader {
 			traceData := p.ContextFromTraceIdHeader(v)
 			log.Println("-------------Extract Data: ", traceData)
