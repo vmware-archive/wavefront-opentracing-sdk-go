@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/opentracing/opentracing-go"
-	"github.com/uber/jaeger-client-go"
 )
 
 // SpanReporter reports completed Spans
@@ -185,11 +184,7 @@ var Delegator delegatorType
 
 func (t *WavefrontTracer) Inject(sc opentracing.SpanContext, format interface{}, carrier interface{}) error {
 	if _, ok := format.(JaegerWavefrontPropagator); ok {
-		jsc, ok := sc.(jaeger.SpanContext)
-		if !ok {
-			return opentracing.ErrInvalidSpanContext
-		}
-		return t.jaegerWavefrontPropagator.Inject(jsc, carrier)
+		return t.jaegerWavefrontPropagator.Inject(sc, carrier)
 	}
 	switch format {
 	case opentracing.TextMap, opentracing.HTTPHeaders:

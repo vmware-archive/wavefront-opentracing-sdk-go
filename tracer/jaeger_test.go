@@ -3,7 +3,6 @@ package tracer
 import (
 	"github.com/opentracing/opentracing-go"
 	"github.com/stretchr/testify/assert"
-	"github.com/uber/jaeger-client-go"
 	"net/http"
 	"testing"
 )
@@ -33,15 +32,19 @@ func TestJaegerWavefrontPropagator_Inject(t *testing.T) {
 	traceIdHeader, baggagePrefix := "Uber-Trace-Id", "Uberctx-"
 	tmc := opentracing.HTTPHeadersCarrier(http.Header{})
 	tracer := New(NewInMemoryReporter(), WithBaggagePrefix(baggagePrefix), WithTraceIdHeader(traceIdHeader))
-	spanContext, _ := jaeger.ContextFromString(
-		"3871de7e09c53ae8:7499dd16d98ab60e:3771de7e09c55ae8:1")
+	spanContext := SpanContext{
+		TraceID: "3871de7e09c53ae8",
+		SpanID:  "7499dd16d98ab60e",
+		Sampled: nil,
+		Baggage: nil,
+	}
 	spanContext = spanContext.WithBaggageItem("x", "y")
 	if err := tracer.Inject(spanContext, JaegerWavefrontPropagator{}, tmc); err != nil {
 		t.Fatalf("%d: %v", 0, err)
 	}
 	_, ok := tmc[traceIdHeader]
 	assert.True(t, ok)
-	assert.Equal(t, "3871de7e09c53ae8:7499dd16d98ab60e:3771de7e09c55ae8:1", tmc[traceIdHeader][0])
+	assert.Equal(t, "3871de7e09c53ae8:7499dd16d98ab60e::0", tmc[traceIdHeader][0])
 }
 
 func TestToUUID(t *testing.T) {

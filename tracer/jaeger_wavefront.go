@@ -5,7 +5,6 @@ import (
 	"errors"
 	"github.com/google/uuid"
 	"github.com/opentracing/opentracing-go"
-	"github.com/uber/jaeger-client-go"
 	"strconv"
 	"strings"
 )
@@ -50,19 +49,23 @@ func NewJaegerWfPropagator(traceIdHeader string, baggagePrefix string) *JaegerWa
 	}
 }
 
-func (p *JaegerWavefrontPropagator) Inject(spanContext jaeger.SpanContext,
+func (p *JaegerWavefrontPropagator) Inject(spanContext opentracing.SpanContext,
 	opaqueCarrier interface{}) error {
 	carrier, ok := opaqueCarrier.(opentracing.TextMapWriter)
 	if !ok {
 		return opentracing.ErrInvalidCarrier
 	}
-	carrier.Set(p.traceIdHeader, contextToTraceIdHeader(spanContext)) // p.traceIdHeader would be canonical
-	spanContext.ForeachBaggageItem(func(k, v string) bool {
+	sc, ok := spanContext.(SpanContext)
+	if !ok {
+		return opentracing.ErrInvalidSpanContext
+	}
+	carrier.Set(p.traceIdHeader, contextToTraceIdHeader(sc)) // p.traceIdHeader would be canonical
+	sc.ForeachBaggageItem(func(k, v string) bool {
 		carrier.Set(p.baggagePrefix+k, v)
 		return true
 	})
-	if spanContext.IsSampled() {
-		carrier.Set(SAMPLING_DECISION_KEY, strconv.FormatBool(spanContext.IsSampled()))
+	if sc.IsSampled() {
+		carrier.Set(SAMPLING_DECISION_KEY, strconv.FormatBool(sc.IsSampled()))
 	}
 	return nil
 }
@@ -129,13 +132,13 @@ func contextFromString(value string) (SpanContext, error) {
 	return context, nil
 }
 
-func contextToTraceIdHeader(spanContext jaeger.SpanContext) string {
+func contextToTraceIdHeader(spanContext SpanContext) string {
 	var b bytes.Buffer
-	b.WriteString(convertUUID(spanContext.TraceID().String()))
+	b.WriteString(convertUUID(spanContext.TraceID))
 	b.WriteString(":")
-	b.WriteString(convertUUID(spanContext.SpanID().String()))
+	b.WriteString(convertUUID(spanContext.SpanID))
 	b.WriteString(":")
-	b.WriteString(spanContext.ParentID().String())
+	b.WriteString(spanContext.Baggage[PARENT_ID_KEY])
 	b.WriteString(":")
 	samplingDecision := "0"
 	if spanContext.IsSampled() {
