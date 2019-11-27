@@ -49,15 +49,16 @@ func WithSampler(sampler Sampler) Option {
 	}
 }
 
-func WithTraceIdHeader(traceIdHeader string) Option {
+func WithJaegerPropagator(traceId, baggagePrefix string) Option {
 	return func(args *WavefrontTracer) {
-		args.jaegerWavefrontPropagator.WithTraceIdHeader(traceIdHeader)
-	}
-}
-
-func WithBaggagePrefix(baggagePrefix string) Option {
-	return func(args *WavefrontTracer) {
-		args.jaegerWavefrontPropagator.WithBaggagePrefix(baggagePrefix)
+		var options []JaegerOption
+		if traceId != "" {
+			options = append(options, WithTraceIdHeader(traceId))
+		}
+		if baggagePrefix != "" {
+			options = append(options, WithBaggagePrefix(baggagePrefix))
+		}
+		args.jaegerWavefrontPropagator = NewJaegerWavefrontPropagator(args, options)
 	}
 }
 
@@ -70,7 +71,6 @@ func New(reporter SpanReporter, options ...Option) opentracing.Tracer {
 	tracer.textPropagator = &textMapPropagator{tracer}
 	tracer.binaryPropagator = &binaryPropagator{tracer}
 	tracer.accessorPropagator = &accessorPropagator{tracer}
-	tracer.jaegerWavefrontPropagator = NewJaegerWavefrontPropagator(tracer)
 
 	for _, option := range options {
 		option(tracer)
@@ -184,6 +184,9 @@ var Delegator delegatorType
 
 func (t *WavefrontTracer) Inject(sc opentracing.SpanContext, format interface{}, carrier interface{}) error {
 	if _, ok := format.(JaegerWavefrontPropagator); ok {
+		if t.jaegerWavefrontPropagator == nil {
+			return opentracing.ErrUnsupportedFormat
+		}
 		return t.jaegerWavefrontPropagator.Inject(sc, carrier)
 	}
 	switch format {
@@ -200,6 +203,9 @@ func (t *WavefrontTracer) Inject(sc opentracing.SpanContext, format interface{},
 
 func (t *WavefrontTracer) Extract(format interface{}, carrier interface{}) (opentracing.SpanContext, error) {
 	if _, ok := format.(JaegerWavefrontPropagator); ok {
+		if t.jaegerWavefrontPropagator == nil {
+			return nil, opentracing.ErrUnsupportedFormat
+		}
 		return t.jaegerWavefrontPropagator.Extract(carrier)
 	}
 	switch format {

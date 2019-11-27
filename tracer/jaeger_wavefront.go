@@ -22,31 +22,31 @@ type JaegerWavefrontPropagator struct {
 	tracer        *WavefrontTracer
 }
 
-type Setter func(*JaegerWavefrontPropagator)
+type JaegerOption func(*JaegerWavefrontPropagator)
 
-func (j *JaegerWavefrontPropagator) WithBaggagePrefix(baggagePrefix string) {
-	j.baggagePrefix = baggagePrefix
+func WithBaggagePrefix(baggagePrefix string) JaegerOption {
+	return func(args *JaegerWavefrontPropagator) {
+		args.baggagePrefix = baggagePrefix
+	}
 }
 
-func (j *JaegerWavefrontPropagator) WithTraceIdHeader(traceIdHeader string) {
-	j.traceIdHeader = traceIdHeader
+func WithTraceIdHeader(traceIdHeader string) JaegerOption {
+	return func(args *JaegerWavefrontPropagator) {
+		args.traceIdHeader = traceIdHeader
+	}
 }
 
-func NewJaegerWavefrontPropagator(tracer *WavefrontTracer) *JaegerWavefrontPropagator {
+func NewJaegerWavefrontPropagator(tracer *WavefrontTracer,
+	options []JaegerOption) *JaegerWavefrontPropagator {
 	j := &JaegerWavefrontPropagator{
 		traceIdHeader: TRACE_ID_KEY,
 		baggagePrefix: BAGGAGE_PREFIX,
 		tracer:        tracer,
 	}
-	return j
-}
-
-func NewJaegerWfPropagator(traceIdHeader string, baggagePrefix string) *JaegerWavefrontPropagator {
-	return &JaegerWavefrontPropagator{
-		traceIdHeader: traceIdHeader,
-		baggagePrefix: baggagePrefix,
-		tracer:        nil,
+	for _, option := range options {
+		option(j)
 	}
+	return j
 }
 
 func (p *JaegerWavefrontPropagator) Inject(spanContext opentracing.SpanContext,
