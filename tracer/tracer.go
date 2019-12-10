@@ -22,13 +22,17 @@ type Sampler interface {
 
 // WavefrontTracer implements the OpenTracing `Tracer` interface.
 type WavefrontTracer struct {
-	textPropagator     *textMapPropagator
-	binaryPropagator   *binaryPropagator
-	accessorPropagator *accessorPropagator
+	textPropagator            *textMapPropagator
+	binaryPropagator          *binaryPropagator
+	accessorPropagator        *accessorPropagator
+	jaegerWavefrontPropagator *JaegerWavefrontPropagator
 
 	earlySamplers []Sampler
 	lateSamplers  []Sampler
 	reporter      SpanReporter
+
+	jeagerPropagatorTraceIdHeader string
+	jeagerPropagatorBaggagePrefix string
 }
 
 // Option allows customizing the WavefrontTracer.
@@ -42,6 +46,19 @@ func WithSampler(sampler Sampler) Option {
 		} else {
 			args.lateSamplers = append(args.lateSamplers, sampler)
 		}
+	}
+}
+
+func WithJaegerPropagator(traceId, baggagePrefix string) Option {
+	return func(args *WavefrontTracer) {
+		var options []JaegerOption
+		if traceId != "" {
+			options = append(options, WithTraceIdHeader(traceId))
+		}
+		if baggagePrefix != "" {
+			options = append(options, WithBaggagePrefix(baggagePrefix))
+		}
+		args.jaegerWavefrontPropagator = NewJaegerWavefrontPropagator(args, options)
 	}
 }
 
@@ -166,6 +183,12 @@ type delegatorType struct{}
 var Delegator delegatorType
 
 func (t *WavefrontTracer) Inject(sc opentracing.SpanContext, format interface{}, carrier interface{}) error {
+	if _, ok := format.(JaegerWavefrontPropagator); ok {
+		if t.jaegerWavefrontPropagator == nil {
+			return opentracing.ErrUnsupportedFormat
+		}
+		return t.jaegerWavefrontPropagator.Inject(sc, carrier)
+	}
 	switch format {
 	case opentracing.TextMap, opentracing.HTTPHeaders:
 		return t.textPropagator.Inject(sc, carrier)
@@ -179,6 +202,12 @@ func (t *WavefrontTracer) Inject(sc opentracing.SpanContext, format interface{},
 }
 
 func (t *WavefrontTracer) Extract(format interface{}, carrier interface{}) (opentracing.SpanContext, error) {
+	if _, ok := format.(JaegerWavefrontPropagator); ok {
+		if t.jaegerWavefrontPropagator == nil {
+			return nil, opentracing.ErrUnsupportedFormat
+		}
+		return t.jaegerWavefrontPropagator.Extract(carrier)
+	}
 	switch format {
 	case opentracing.TextMap, opentracing.HTTPHeaders:
 		return t.textPropagator.Extract(carrier)
