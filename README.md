@@ -23,11 +23,13 @@ This is the Wavefront by VMware OpenTracing SDK for Go that provides distributed
 
 ![Go Tracing SDK Decision Tree](docs/Go-Tracing-SDK.png)
 
-<div style="background-color:#FCF8E3;color:black;padding:10px;">
-  <b><i>Note</i>: </br>This is the Wavefront by VMware's OpenTracing SDK for Go!</b>
-  If this SDK is not what you were looking for, see the <a href="#WavefrontSDK">table</a> given below.
-</div> 
+<div style="background-color:rgba(245,232,163,0.5); padding:10px;">
+<b><i>Note</i>: </br>This is the Wavefront by VMware's OpenTracing SDK for Go!</b>
+If this SDK is not what you were looking for, see the <a href="#WavefrontSDK">table</a> given below.
+</div>
+
 </br>
+
 <div style="background-color:#cee4f5;color:black;padding:10px;">
   See <a href="https://docs.wavefront.com/tracing_instrumenting_frameworks.html">instrument your application for tracing</a> for more information.
 </div>
