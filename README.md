@@ -290,7 +290,7 @@ See the [RED metrics documentation](https://github.com/wavefrontHQ/wavefront-ope
 See the [diagnostic metrics documentation](https://github.com/wavefrontHQ/wavefront-opentracing-sdk-go/blob/master/docs/internal_metrics.md) for details on the internal metrics that this SDK collects and reports to Wavefront.
 
 ## License
-[Apache 2.0 License](#LICENSE).
+[Apache 2.0 License](LICENSE).
 
 ## How to Contribute
 Want to contribute to this SDK on Github? Reach out to us with this good news! 
