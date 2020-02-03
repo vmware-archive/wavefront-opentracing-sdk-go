@@ -14,7 +14,7 @@
 * [RED Metrics](#RED-Metrics)
 * [Monitoring the SDK](#Monitoring-the-SDK)
 * [License](#License)
-* [Join the Wavefront Community](#Join-the-Wavefront-Community)
+* [How to Contribute](#How-to-Contribute)
 
 # Welcome to Wavefront's OpenTracing Go SDK
 This is the Wavefront by VMware OpenTracing SDK for Go that provides distributed tracing support for Wavefront.
@@ -290,14 +290,14 @@ See the [RED metrics documentation](https://github.com/wavefrontHQ/wavefront-ope
 See the [diagnostic metrics documentation](https://github.com/wavefrontHQ/wavefront-opentracing-sdk-go/blob/master/docs/internal_metrics.md) for details on the internal metrics that this SDK collects and reports to Wavefront.
 
 ## License
-[Apache 2.0 License](#License).
+[Apache 2.0 License](#LICENSE).
 
 ## How to Contribute
 Want to contribute to this SDK on Github? Reach out to us with this good news! 
 
 * Contact Wavefront by VMware: wavefront@vmware.com
 * Slack: wavefront-public.slack.com
-* Join the [Wavefront community](https://communities.vmware.com/community/vmtn/wavefront/overview)
+* Join the [Wavefront community](https://communities.vmware.com/community/vmtn/wavefront/overview).
 * If you run into any issues, let us know by creating a Github issue in this repository.
 
 
