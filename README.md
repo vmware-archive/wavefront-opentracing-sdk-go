@@ -36,8 +36,8 @@ This is the Wavefront by VMware OpenTracing SDK for Go that provides distributed
 <table id="SDKlevels" style="width: 100%">
   <tr>
     <th width="10%">SDK Type</th>
-    <th width="47%">SDK Description</th>
-    <th width="43%">Supported Languages</th>
+    <th width="45%">SDK Description</th>
+    <th width="45%">Supported Languages</th>
   </tr>
   <tr>
     <td><a href="https://docs.wavefront.com/wavefront_sdks.html#sdks-that-instrument-frameworks">OpenTracing SDK</a></td>
