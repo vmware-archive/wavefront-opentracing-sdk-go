@@ -141,7 +141,7 @@ The steps for creating a `WavefrontTracer` are:
 1. [Create a `Tags` instance](#1-Set-Up-Application-Tags) to specify metadata about your application.
 2. [Create a Wavefront `Sender`](#2-Set-Up-a-WavefrontSender) to send trace data to Wavefront.
 3. [Create a `WavefrontSpanReporter`](#3-Set-Up-a-Reporter) to report trace data to Wavefront.
-4. [Create the `WavefrontTracer`](#4-Create-a-WavefrontTracer) instance.
+4. [Create the `WavefrontTracer`](#4-Create-a-WavefrontTracer).
 5. [Initialize the OpenTracing global tracer](#5-Initialize-the-Global-Tracer).
 
 The following code sample creates a Tracer. For the details of each step, see the sections below.
@@ -214,7 +214,7 @@ if err != nil {
 
 ### 3. Set Up a Reporter
 
-You must create a `WavefrontSpanReporter` to report trace data to Wavefront. Optionally, you can create a `CompositeReporter` to send data to Wavefront and print to the console.
+You must create a `WavefrontSpanReporter` to report trace data to Wavefront. Optionally, you can create a `CompositeReporter` to send data to Wavefront and print it to the console.
 
 #### Create a `WavefrontSpanReporter`
 
@@ -224,13 +224,15 @@ To create a `WavefrontSpanReporter`, you specify:
 * The `Tags` instance from [Step 1](#1-set-up-application-tags).
 * (Optional) A nondefault source for the reported spans.
 
-This example creates a `WavefrontSpanReporter` that assigns the default source (the hostname) to the reported spans:
+This example creates a `WavefrontSpanReporter` that assigns the default source (the hostname) to the reported spans.
+<br/>Example:
 
 ```go
 reporter := reporter.New(sender, appTags)
 ```
 
-This example creates a `WavefrontSpanReporter` that assigns the specified source to the reported spans:
+This example creates a `WavefrontSpanReporter` that assigns the specified source to the reported spans.
+<br/>Example:
 
 ```go
 reporter := reporter.New(sender, appTags, reporter.Source("app1.foo.com"))
@@ -270,8 +272,7 @@ To create a global tracer, you initialize it with the `WavefrontTracer` you crea
 opentracing.InitGlobalTracer(tracer)
 ```
 
-**Note:** Initializing the global tracer causes completed spans be reported to Wavefront automatically.
-You do not need to start the reporter explicitly.
+**Note:** After you initialize the global tracer, completed spans are automatically reported to Wavefront and you do not need to start the reporter explicitly.
 
 ## Span Logs
 
