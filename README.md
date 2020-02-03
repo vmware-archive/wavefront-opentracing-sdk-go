@@ -35,8 +35,8 @@ This is the Wavefront by VMware OpenTracing SDK for Go that provides distributed
 #### Wavefront SDKs
 <table id="SDKlevels" style="width: 100%">
 <colgroup>
-<col width="16%"/>
-<col width="39%"/>
+<col width="10%"/>
+<col width="45%"/>
 <col width="45%"/>
 </colgroup>
 <thead>
