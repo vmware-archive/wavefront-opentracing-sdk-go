@@ -17,7 +17,7 @@ type WfLogger struct {
 	context echo.Context
 }
 
-type writer struct {
+type Writer struct {
 	io.Writer
 	timeFormat string
 }
