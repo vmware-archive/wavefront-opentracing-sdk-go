@@ -7,7 +7,7 @@
 4. Copy tracer-config.yaml, tracer-routesRegistration.yaml file to container in Dockerfile
 
 ## Example: tracer-config.yaml file:
-```yaml
+```
 cluster* : production
 shard* : 1
 application : devops-insight
@@ -27,14 +27,14 @@ durationSampler* : 60
 ***Middleware automatically parses jwt token to add the given claims as tags in the span*
 
 ## Example: tracer-routesRegistration.yaml
-```yaml
+```
 routesRegistration:
 		/tracingapi/test.GET:
 				routeSpecificTag: route-tag
 				routeSpecifcMetaTags:
 					routeSpecifcMetaTagKey: routeSpecifcMetaTagValue
 ```
-**Routes registration format**
+**Routes registration format:**
 api-path.HTTP_METHOD
 
 
