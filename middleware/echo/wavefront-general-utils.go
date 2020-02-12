@@ -38,3 +38,13 @@ func getClaimsFromJwtToken(jwtToken string) (map[string]interface{}, error) {
 	}
 	return claims, nil
 }
+
+// readFromFile reads data from given file and returns content as string
+func readFromFile(filePath string) (string, error) {
+	dataBytes, err := ioutil.ReadFile(filePath)
+	if err != nil {
+		return "", err
+	}
+	dataString := string(dataBytes[:])
+	return dataString, nil
+}

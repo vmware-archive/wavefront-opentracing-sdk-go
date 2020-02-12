@@ -1,7 +1,6 @@
 package wavefront
 
 import (
-	"gitlab.eng.vmware.com/devops-insight/devops-insight-commons/utils/file"
 	"gopkg.in/yaml.v2"
 )
 
@@ -36,7 +35,7 @@ type tracerConfig struct {
 //Populates the GlobalTracerConfig.
 func readConfigFromYaml(configFilePath string) (*tracerConfig, error) {
 	// Open our yamlFile
-	configFile, err := file.ReadFromFile(configFilePath)
+	configFile, err := readFromFile(configFilePath)
 	// if we os.Open returns an error then handle it
 	if err != nil {
 		return nil, err
