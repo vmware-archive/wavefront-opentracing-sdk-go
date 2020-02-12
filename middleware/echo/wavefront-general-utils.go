@@ -2,6 +2,7 @@ package wavefront
 
 import (
 	"errors"
+	"io/ioutil"
 	"strings"
 
 	"github.com/dgrijalva/jwt-go"
@@ -30,7 +31,7 @@ func parseJwtClaimsFromHeaders(c echo.Context) (map[string]interface{}, error) {
 // getClaimsFromJwtToken takes JWT token string and returns claims
 func getClaimsFromJwtToken(jwtToken string) (map[string]interface{}, error) {
 	claims := jwt.MapClaims{}
-	token, _ := jwt.ParseWithClaims(jwtToken, claims, nil) 
+	token, _ := jwt.ParseWithClaims(jwtToken, claims, nil)
 	// nil is for skipping validation
 	// Ignoring above err as we are not validating signature
 	if token == nil {
