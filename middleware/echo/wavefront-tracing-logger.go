@@ -40,8 +40,8 @@ func NewWfLogger(context echo.Context) *WfLogger {
 	return Log
 }
 
-//Println formats using the default formats for its operands and writes to standard output. 
-//Spaces are always added between operands and a newline is appended. 
+//Println formats using the default formats for its operands and writes to standard output.
+//Spaces are always added between operands and a newline is appended.
 //It returns the number of bytes written and any write error encountered.
 //Sends the log object to wavefront.
 func (wavefrontLogger *WfLogger) Println(v ...interface{}) {
@@ -52,7 +52,7 @@ func (wavefrontLogger *WfLogger) Println(v ...interface{}) {
 }
 
 //Print formats using the default formats for its operands and writes to standard output.
-//Spaces are added between operands when neither is a string. 
+//Spaces are added between operands when neither is a string.
 //It returns the number of bytes written and any write error encountered.
 //Sends the log object to wavefront.
 func (wavefrontLogger *WfLogger) Print(v ...interface{}) {
@@ -61,7 +61,7 @@ func (wavefrontLogger *WfLogger) Print(v ...interface{}) {
 	wavefrontLogger.logger.Print(v...)
 }
 
-//Printf formats according to a format specifier and writes to standard output. 
+//Printf formats according to a format specifier and writes to standard output.
 //It returns the number of bytes written and any write error encountered.
 //Sends the log object to wavefront.
 func (wavefrontLogger *WfLogger) Printf(format string, v ...interface{}) {
@@ -137,11 +137,6 @@ func (wavefrontLogger *WfLogger) SetPrefix(prefix string) {
 	wavefrontLogger.logger.SetPrefix(newTracePrefix)
 }
 
-//Writer returns the output destination for the standard logger.
-func (wavefrontLogger *WfLogger) Writer() io.Writer {
-	return wavefrontLogger.logger.Writer()
-}
-
 //SetFlags sets the output flags for the logger.
 func (wavefrontLogger *WfLogger) SetFlags(flag int) {
 	wavefrontLogger.logger.SetFlags(flag)
@@ -152,10 +147,10 @@ func (wavefrontLogger *WfLogger) SetOutput(w io.Writer) {
 	wavefrontLogger.logger.SetOutput(w)
 }
 
-//Output writes the output for a logging event. 
-//The string s contains the text to print after the prefix specified by the flags of the Logger. 
-//A newline is appended if the last character of s is not already a newline. 
-//Calldepth is the count of the number of frames to skip when computing the file name and line number 
+//Output writes the output for a logging event.
+//The string s contains the text to print after the prefix specified by the flags of the Logger.
+//A newline is appended if the last character of s is not already a newline.
+//Calldepth is the count of the number of frames to skip when computing the file name and line number
 //if Llongfile or Lshortfile is set; a value of 1 will print the details for the caller of Output.
 func (wavefrontLogger *WfLogger) Output(calldepth int, s string) error {
 	return wavefrontLogger.logger.Output(calldepth, s)
