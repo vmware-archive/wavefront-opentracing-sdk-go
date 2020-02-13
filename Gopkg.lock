@@ -34,6 +34,14 @@
   version = "v1.2.0"
 
 [[projects]]
+  digest = "1:ad92aa49f34cbc3546063c7eb2cabb55ee2278b72842eda80e2a20a8a06a8d73"
+  name = "github.com/google/uuid"
+  packages = ["."]
+  pruneopts = ""
+  revision = "0cd6bf5da1e1c83f8b45653022c74f71af0538a4"
+  version = "v1.1.1"
+
+[[projects]]
   digest = "1:78fb99d6011c2ae6c72f3293a83951311147b12b06a5ffa43abf750c4fab6ac5"
   name = "github.com/opentracing/opentracing-go"
   packages = [
@@ -113,6 +121,7 @@
     "github.com/davecgh/go-spew/spew",
     "github.com/gogo/protobuf/proto",
     "github.com/golang/protobuf/proto",
+    "github.com/google/uuid",
     "github.com/opentracing/opentracing-go",
     "github.com/opentracing/opentracing-go/ext",
     "github.com/opentracing/opentracing-go/log",
@@ -122,6 +131,7 @@
     "github.com/wavefronthq/go-metrics-wavefront/reporting",
     "github.com/wavefronthq/wavefront-sdk-go/application",
     "github.com/wavefronthq/wavefront-sdk-go/senders",
+    "golang.org/x/net/context",
   ]
   solver-name = "gps-cdcl"
   solver-version = 1
