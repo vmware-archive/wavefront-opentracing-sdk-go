@@ -10,6 +10,6 @@ You can use these methods to propagate a `childOf` or `followsFrom` relationship
 across process or host boundaries.
 
 * In code that makes an external call (such as an HTTP invocation), obtain the current span and its span context,
-create a carrier, and inject the span context into the carrier as shown [here](https://github.com/opentracing/opentracing-go#serializing-to-the-wire).
+create a carrier, and inject the span context into the carrier as shown in the [OpenTracing Go API documentation](https://github.com/opentracing/opentracing-go#serializing-to-the-wire).
 
-* In code that responds to the call (i.e., that receives the HTTP request), extract the propagated span context as shown [here](https://github.com/opentracing/opentracing-go#deserializing-from-the-wire).
+* In code that responds to the call, such as receiving the HTTP request, extract the propagated span context as shown in the [OpenTracing Go API documentation](https://github.com/opentracing/opentracing-go#deserializing-from-the-wire).

@@ -117,7 +117,7 @@ This is the Wavefront by VMware OpenTracing SDK for Go that provides distributed
 
 ## Prerequisites
 
-* Go 1.9 or higher
+* Go 1.9 or higher.
 * Import Wavefront packages.
     ```go
     import (
@@ -132,19 +132,19 @@ This is the Wavefront by VMware OpenTracing SDK for Go that provides distributed
 
 [Tracer](https://github.com/opentracing/specification/blob/master/specification.md#tracer) is an OpenTracing [interface](https://github.com/opentracing/opentracing-go#api-overview-for-those-adding-instrumentation) for creating spans and propagating them across arbitrary transports.
 
-This SDK provides a `WavefrontTracer` that implements the `Tracer` interface. A `WaverfrontTracer`:
+This SDK provides a `WavefrontTracer` that implements the `Tracer` interface to create spans and send them to Wavefront. A `WaverfrontTracer`:
 * Creates spans and sends them to Wavefront.
-* Automatically generates and reports [RED metrics](https://github.com/wavefrontHQ/wavefront-opentracing-sdk-java/blob/master/docs/metrics.md) from your spans.
+* Automatically generates and reports [RED metrics](https://github.com/wavefrontHQ/wavefront-sdk-doc-sources/blob/master/common/metrics.md) from your spans.
 
 The steps for creating a `WavefrontTracer` are:
 
 1. [Create a `Tags` instance](#1-Set-Up-Application-Tags) to specify metadata about your application.
-2. [Create a Wavefront `Sender`](#2-Set-Up-a-WavefrontSender) to send trace data to Wavefront.
-3. [Create a `WavefrontSpanReporter`](#3-Set-Up-a-Reporter) to report trace data to Wavefront.
-4. [Create the `WavefrontTracer`](#4-Create-a-WavefrontTracer).
+2. [Create a Wavefront `Sender` instance](#2-Set-Up-a-WavefrontSender) to send trace data to Wavefront.
+3. [Create a `WavefrontSpanReporter` instance](#3-Set-Up-a-Reporter) to report trace data to Wavefront.
+4. [Create the `WavefrontTracer` instance](#4-Create-a-WavefrontTracer).
 5. [Initialize the OpenTracing global tracer](#5-Initialize-the-Global-Tracer).
 
-The following code sample creates a Tracer. For the details of each step, see the sections below.
+The following code sample creates a Tracer. For details of each step, see the sections below.
 
 ```go
 func NewGlobalTracer(serviceName string) io.Closer {
@@ -159,14 +159,11 @@ func NewGlobalTracer(serviceName string) io.Closer {
         os.Exit(1)
     }
 
-    appTags := application.New(applicationName, serviceName)
-
-    directrep := wfreporter.New(sender, appTags)
-    consolerep := wfreporter.NewConsoleSpanReporter(serviceName)
-
-    reporter := wfreporter.NewCompositeSpanReporter(directrep, consolerep)
-
-    tracer := wftracer.New(reporter)
+    appTags     := application.New(applicationName, serviceName)
+    directrep   := wfreporter.New(sender, appTags)
+    consolerep  := wfreporter.NewConsoleSpanReporter(serviceName)
+    reporter    := wfreporter.NewCompositeSpanReporter(directrep, consolerep)
+    tracer      := wftracer.New(reporter)
 
     opentracing.SetGlobalTracer(tracer)
 
@@ -179,7 +176,7 @@ func NewGlobalTracer(serviceName string) io.Closer {
 
 Application tags determine the metadata (span tags) that are included with every span reported to Wavefront. These tags enable you to filter and query trace data in Wavefront.
 
-You encapsulate application tags in a `Tags` object. See [Application Tags](https://github.com/wavefrontHQ/wavefront-sdk-go/blob/master/docs/apptags.md) for details.
+You encapsulate application tags in a `Tags` object. See [Application Tags](https://github.com/wavefrontHQ/wavefront-sdk-doc-sources/blob/master/go/applicationtags.md) for details.
 
 The following example specifies values for the 2 required tags (`application` and `service`).
 <br/>Example:
@@ -193,9 +190,9 @@ appTags := application.New("OrderingApp", "inventory")
 
 A `Wavefront sender` object implements the low-level interface for sending data to Wavefront. You can choose to send data using the [Wavefront proxy](https://docs.wavefront.com/proxies.html) or [direct ingestion](https://docs.wavefront.com/direct_ingestion.html).
 
-* If you have already set up a Wavefront sender for another SDK that runs in the same process, use that one. (For details, see [Share a Wavefront Sender](https://github.com/wavefrontHQ/wavefront-sdk-go/blob/master/docs/sender.md#share-a-wavefront-sender).)
+* If you have already set up a Wavefront sender for another SDK that runs in the same process, use that one. For details, see [Share a Wavefront Sender](https://github.com/wavefrontHQ/wavefront-sdk-doc-sources/blob/master/go/wavefrontsender.md#Share-a-WavefrontSender).
 
-* Otherwise, [set up a Wavefront Sender](https://github.com/wavefrontHQ/wavefront-sdk-go/blob/master/docs/sender.md) to configure a proxy `Sender` or a direct `Sender`.
+* Otherwise, [set up a Wavefront Sender](https://github.com/wavefrontHQ/wavefront-sdk-doc-sources/blob/master/go/wavefrontsender.md#wavefrontsender) to configure a proxy `Sender` or a direct `Sender`.
 
 The following example configures a direct `Sender` with default direct ingestion properties.
 <br/>Example:
@@ -272,7 +269,7 @@ To create a global tracer, you initialize it with the `WavefrontTracer` you crea
 opentracing.InitGlobalTracer(tracer)
 ```
 
-**Note:** After you initialize the global tracer, completed spans are automatically reported to Wavefront and you do not need to start the reporter explicitly.
+>**Note:** After you initialize the global tracer, completed spans are automatically reported to Wavefront and you do not need to start the reporter explicitly.
 
 ## Span Logs
 
@@ -284,7 +281,7 @@ Use the [OpenTracing Span object’s LogFields() method](https://godoc.org/githu
 See the [context propagation documentation](https://github.com/wavefrontHQ/wavefront-opentracing-sdk-go/tree/master/docs/contextpropagation.md) for details on propagating span contexts across process boundaries.
 
 ## RED Metrics
-See the [RED metrics documentation](https://github.com/wavefrontHQ/wavefront-opentracing-sdk-java/blob/master/docs/metrics.md) for details on the out-of-the-box metrics and histograms that are provided.
+See the [RED metrics documentation](https://github.com/wavefrontHQ/wavefront-sdk-doc-sources/blob/master/common/metrics.md) for details on the out-of-the-box metrics and histograms that are provided.
 
 ## Monitoring the SDK
 See the [diagnostic metrics documentation](https://github.com/wavefrontHQ/wavefront-opentracing-sdk-go/blob/master/docs/internal_metrics.md) for details on the internal metrics that this SDK collects and reports to Wavefront.
@@ -293,13 +290,9 @@ See the [diagnostic metrics documentation](https://github.com/wavefrontHQ/wavefr
 [Apache 2.0 License](LICENSE).
 
 ## How to Contribute
-Want to contribute to this SDK on Github? Reach out to us with this good news! 
 
-* Contact Wavefront by VMware: wavefront@vmware.com
-* Slack: wavefront-public.slack.com
-* Join the [Wavefront community](https://communities.vmware.com/community/vmtn/wavefront/overview).
-* If you run into any issues, let us know by creating a Github issue in this repository.
-
+* Reach out to us on our public [Slack channel](https://wavefront.com/join-public-slack).
+* If you run into any issues, let us know by creating a GitHub issue.
 
 [ci-img]: https://travis-ci.com/wavefrontHQ/wavefront-opentracing-sdk-go.svg?branch=master
 [ci]: https://travis-ci.com/wavefrontHQ/wavefront-opentracing-sdk-go
