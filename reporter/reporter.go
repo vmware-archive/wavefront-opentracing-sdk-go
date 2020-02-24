@@ -108,6 +108,7 @@ func New(sender senders.Sender, app application.Tags, setters ...Option) Wavefro
 		reporting.Interval(time.Second*60),
 		reporting.Source(r.source),
 		reporting.Prefix("tracing.derived"),
+		reporting.CustomRegistry(metrics.NewRegistry()),
 	)
 
 	r.internalReporter = reporting.NewReporter(
