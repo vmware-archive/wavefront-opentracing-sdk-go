@@ -25,7 +25,7 @@ This is the Wavefront by VMware OpenTracing SDK for Go that provides distributed
 
 >  <b><i>Note</i></b>:
 > </br>
->  * <b>This is the Wavefront by VMware's OpenTracing SDK for Go!</b>
+>  * <b>This is the Wavefront by VMware OpenTracing SDK for Go!</b>
 > If this SDK is not what you were looking for, see the <a href="#WavefrontSDK">table</a> given below.
 > * See <a href="https://docs.wavefront.com/tracing_instrumenting_frameworks.html">instrument your application for tracing</a> for more information.
 
