@@ -26,7 +26,7 @@ This is the Wavefront by VMware OpenTracing SDK for Go that provides distributed
 >  <b><i>Note</i></b>:
 > </br>
 >  * <b>This is the Wavefront by VMware OpenTracing SDK for Go!</b>
-> If this SDK is not what you were looking for, see the <a href="#WavefrontSDK">table</a> given below.
+> If this SDK is not what you were looking for, see the <a href="#wavefront-sdks">table</a> given below.
 > * See <a href="https://docs.wavefront.com/tracing_instrumenting_frameworks.html">instrument your application for tracing</a> for more information.
 
 #### Wavefront SDKs
@@ -139,9 +139,9 @@ This SDK provides a `WavefrontTracer` that implements the `Tracer` interface to 
 The steps for creating a `WavefrontTracer` are:
 
 1. [Create a `Tags` instance](#1-Set-Up-Application-Tags) to specify metadata about your application.
-2. [Create a Wavefront `Sender` instance](#2-Set-Up-a-WavefrontSender) to send trace data to Wavefront.
+2. [Create a Wavefront `Sender` instance](#2-Set-Up-a-Wavefront-Sender) to send trace data to Wavefront.
 3. [Create a `WavefrontSpanReporter` instance](#3-Set-Up-a-Reporter) to report trace data to Wavefront.
-4. [Create the `WavefrontTracer` instance](#4-Create-a-WavefrontTracer).
+4. [Create the `WavefrontTracer` instance](#4-Create-a-Wavefront-Tracer).
 5. [Initialize the OpenTracing global tracer](#5-Initialize-the-Global-Tracer).
 
 The following code sample creates a Tracer. For details of each step, see the sections below.
