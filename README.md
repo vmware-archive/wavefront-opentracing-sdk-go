@@ -69,6 +69,9 @@ This is the Wavefront by VMware OpenTracing SDK for Go that provides distributed
       <b>Python</b>: <a href ="https://github.com/wavefrontHQ/wavefront-pyformance">Pyformance SDK</a>
       </li>
       <li>
+      <b>Go</b>: <a href ="https://github.com/wavefrontHQ/go-metrics-wavefront">Go Metrics SDK</a>
+      </li>
+      <li>
       <b>.Net/C#</b>: <a href ="https://github.com/wavefrontHQ/wavefront-appmetrics-sdk-csharp">App Metrics SDK</a>
       </li>
       </ul>
