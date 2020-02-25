@@ -21,7 +21,7 @@ This is the Wavefront by VMware OpenTracing SDK for Go that provides distributed
 
 **Before you start implementing, let us make sure you are using the correct SDK!**
 
-![Go Tracing SDK Decision Tree](docs/Go-Tracing-SDK.png)
+![Go Tracing SDK Decision Tree](docs/go_tracing_sdk.png)
 
 >  <b><i>Note</i></b>:
 > </br>
@@ -134,14 +134,14 @@ This is the Wavefront by VMware OpenTracing SDK for Go that provides distributed
 
 This SDK provides a `WavefrontTracer` that implements the `Tracer` interface to create spans and send them to Wavefront. A `WaverfrontTracer`:
 * Creates spans and sends them to Wavefront.
-* Automatically generates and reports [RED metrics](https://github.com/wavefrontHQ/wavefront-sdk-doc-sources/blob/master/common/metrics.md) from your spans.
+* Automatically generates and reports [RED metrics](https://github.com/wavefrontHQ/wavefront-sdk-doc-sources/blob/master/common/metrics.md#red-metrics) from your spans.
 
 The steps for creating a `WavefrontTracer` are:
 
 1. [Create a `Tags` instance](#1-Set-Up-Application-Tags) to specify metadata about your application.
 2. [Create a Wavefront `Sender` instance](#2-Set-Up-a-Wavefront-Sender) to send trace data to Wavefront.
 3. [Create a `WavefrontSpanReporter` instance](#3-Set-Up-a-Reporter) to report trace data to Wavefront.
-4. [Create the `WavefrontTracer` instance](#4-Create-a-Wavefront-Tracer).
+4. [Create the `WavefrontTracer` instance](#4-Create-a-WavefrontTracer).
 5. [Initialize the OpenTracing global tracer](#5-Initialize-the-Global-Tracer).
 
 The following code sample creates a Tracer. For details of each step, see the sections below.
@@ -190,9 +190,9 @@ appTags := application.New("OrderingApp", "inventory")
 
 A `Wavefront sender` object implements the low-level interface for sending data to Wavefront. You can choose to send data using the [Wavefront proxy](https://docs.wavefront.com/proxies.html) or [direct ingestion](https://docs.wavefront.com/direct_ingestion.html).
 
-* If you have already set up a Wavefront sender for another SDK that runs in the same process, use that one. For details, see [Share a Wavefront Sender](https://github.com/wavefrontHQ/wavefront-sdk-doc-sources/blob/master/go/wavefrontsender.md#Share-a-WavefrontSender).
+* If you have already set up a Wavefront sender for another SDK that runs in the same process, use that one. For details, see [Share a Wavefront Sender](https://github.com/wavefrontHQ/wavefront-sdk-doc-sources/blob/master/go/wavefrontsender.md#share-a-wavefront-sender).
 
-* Otherwise, [set up a Wavefront Sender](https://github.com/wavefrontHQ/wavefront-sdk-doc-sources/blob/master/go/wavefrontsender.md#wavefrontsender) to configure a proxy `Sender` or a direct `Sender`.
+* Otherwise, [set up a Wavefront Sender](https://github.com/wavefrontHQ/wavefront-sdk-doc-sources/blob/master/go/wavefrontsender.md#set-up-a-wavefront-sender) to configure a proxy `Sender` or a direct `Sender`.
 
 The following example configures a direct `Sender` with default direct ingestion properties.
 <br/>Example:
@@ -211,7 +211,7 @@ if err != nil {
 
 ### 3. Set Up a Reporter
 
-You must create a `WavefrontSpanReporter` to report trace data to Wavefront. Optionally, you can create a `CompositeReporter` to send data to Wavefront and print it to the console.
+You must create a `WavefrontSpanReporter` to report trace data to Wavefront. Optionally, you can create a `CompositeSpanReporter` to send data to Wavefront and print it to the console.
 
 #### Create a `WavefrontSpanReporter`
 
@@ -235,9 +235,9 @@ This example creates a `WavefrontSpanReporter` that assigns the specified source
 reporter := reporter.New(sender, appTags, reporter.Source("app1.foo.com"))
 ```
 
-#### Create a CompositeReporter (Optional)
+#### Create a CompositeSpanReporter (Optional)
 
-A `CompositeReporter` enables you to chain a `WavefrontSpanReporter` to another reporter, such as a `ConsoleReporter`. A console reporter is useful for debugging.
+A `CompositeSpanReporter` enables you to chain a `WavefrontSpanReporter` to another reporter, such as a `ConsoleSpanReporter`. A console reporter is useful for debugging.
 
 ```go
 wfReporter := reporter.New(sender, appTags, reporter.Source("app1.foo.com"))
@@ -281,7 +281,7 @@ Use the [OpenTracing Span object’s LogFields() method](https://godoc.org/githu
 See the [context propagation documentation](https://github.com/wavefrontHQ/wavefront-opentracing-sdk-go/tree/master/docs/contextpropagation.md) for details on propagating span contexts across process boundaries.
 
 ## RED Metrics
-See the [RED metrics documentation](https://github.com/wavefrontHQ/wavefront-sdk-doc-sources/blob/master/common/metrics.md) for details on the out-of-the-box metrics and histograms that are provided.
+See the [RED metrics documentation](https://github.com/wavefrontHQ/wavefront-sdk-doc-sources/blob/master/common/metrics.md#red-metrics) for details on the out-of-the-box metrics and histograms that are provided.
 
 ## Monitoring the SDK
 See the [diagnostic metrics documentation](https://github.com/wavefrontHQ/wavefront-opentracing-sdk-go/blob/master/docs/internal_metrics.md) for details on the internal metrics that this SDK collects and reports to Wavefront.
