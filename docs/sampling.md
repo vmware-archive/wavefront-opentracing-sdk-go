@@ -27,10 +27,10 @@ The following table lists the supported sampling strategies:
 | `RateSampler`          | Allows a specified probabilistic rate of traces to be reported. Specify the rate of allowed traces as a `unint64` number between 0 and 100. |
 
 
-**Note:** Regardless of the sampling strategy, the `WavefrontTracer`:
+>**Note:** Regardless of the sampling strategy, the `WavefrontTracer`:
 * Allows all error spans (`error=true` span tag).
 * Allows all spans that have a sampling priority greater than 0 (`sampling.priority` span tag).
-* Includes all spans in the [RED metrics](https://github.com/wavefrontHQ/wavefront-opentracing-sdk-java/blob/master/README.md#red-metrics) that are automatically collected and reported.
+* Includes all spans in the [RED metrics](https://github.com/wavefrontHQ/wavefront-sdk-doc-sources/blob/master/common/metrics.md) that are automatically collected and reported.
 
 
 ## Using Multiple Sampling Strategies
