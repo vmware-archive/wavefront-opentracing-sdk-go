@@ -141,7 +141,7 @@ The steps for creating a `WavefrontTracer` are:
 1. [Create a `Tags` instance](#1-Set-Up-Application-Tags) to specify metadata about your application.
 2. [Create a Wavefront `Sender` instance](#2-Set-Up-a-Wavefront-Sender) to send trace data to Wavefront.
 3. [Create a `WavefrontSpanReporter` instance](#3-Set-Up-a-Reporter) to report trace data to Wavefront.
-4. [Create the `WavefrontTracer` instance](#4-Create-a-WavefrontTracer).
+4. [Create the `WavefrontTracer` instance](#4-Create-the-WavefrontTracer).
 5. [Initialize the OpenTracing global tracer](#5-Initialize-the-Global-Tracer).
 
 The following code sample creates a Tracer. For details of each step, see the sections below.
@@ -176,7 +176,7 @@ func NewGlobalTracer(serviceName string) io.Closer {
 
 Application tags determine the metadata (span tags) that are included with every span reported to Wavefront. These tags enable you to filter and query trace data in Wavefront.
 
-You encapsulate application tags in a `Tags` object. See [Application Tags](https://github.com/wavefrontHQ/wavefront-sdk-doc-sources/blob/master/go/applicationtags.md) for details.
+You encapsulate application tags in a `Tags` object. See [Application Tags](https://github.com/wavefrontHQ/wavefront-sdk-doc-sources/blob/master/go/applicationtags.md#application-tags) for details.
 
 The following example specifies values for the 2 required tags (`application` and `service`).
 <br/>Example:
@@ -255,7 +255,7 @@ tracer := tracer.New(reporter)
 
 #### Sampling (Optional)
 
-Optionally, you can create the `WavefrontTracer` with one or more sampling strategies. See the [sampling documentation](https://github.com/wavefrontHQ/wavefront-opentracing-sdk-go/blob/master/docs/sampling.md) for details.
+Optionally, you can create the `WavefrontTracer` with one or more sampling strategies. See the [sampling documentation](https://github.com/wavefrontHQ/wavefront-opentracing-sdk-go/blob/master/docs/sampling.md#sampling) for details.
 
 ```go
 tracer.New(reporter, WithSampler(sampler))
@@ -278,13 +278,13 @@ You can instrument your application to emit one or more logs with a span, and ex
 Use the [OpenTracing Span object’s LogFields() method](https://godoc.org/github.com/opentracing/opentracing-go#Span) in your application.
 
 ## Cross Process Context Propagation
-See the [context propagation documentation](https://github.com/wavefrontHQ/wavefront-opentracing-sdk-go/tree/master/docs/contextpropagation.md) for details on propagating span contexts across process boundaries.
+See the [context propagation documentation](https://github.com/wavefrontHQ/wavefront-opentracing-sdk-go/blob/master/docs/contextpropagation.md#cross-process-context-propagation) for details on propagating span contexts across process boundaries.
 
 ## RED Metrics
 See the [RED metrics documentation](https://github.com/wavefrontHQ/wavefront-sdk-doc-sources/blob/master/common/metrics.md#red-metrics) for details on the out-of-the-box metrics and histograms that are provided.
 
 ## Monitoring the SDK
-See the [diagnostic metrics documentation](https://github.com/wavefrontHQ/wavefront-opentracing-sdk-go/blob/master/docs/internal_metrics.md) for details on the internal metrics that this SDK collects and reports to Wavefront.
+See the [diagnostic metrics documentation](https://github.com/wavefrontHQ/wavefront-opentracing-sdk-go/blob/master/docs/internal_metrics.md#internal-diagnostic-metrics) for details on the internal metrics that this SDK collects and reports to Wavefront.
 
 ## License
 [Apache 2.0 License](LICENSE).
