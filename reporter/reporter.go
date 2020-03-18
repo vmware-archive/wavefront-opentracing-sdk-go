@@ -247,6 +247,7 @@ func (t *reporter) reportDerivedMetrics(span tracer.RawSpan) {
 	metricName = strings.Replace(metricName, "\"", "\\\"", -1)
 
 	tags := t.application.Map()
+	tags["component"] = span.Component
 	replaceTag(tags, "application", appName, appFound)
 	replaceTag(tags, "service", serviceName, svcFound)
 
@@ -265,9 +266,8 @@ func (t *reporter) reportDerivedMetrics(span tracer.RawSpan) {
 	tags[string(ext.SpanKind)], _ = getAppTag(string(ext.SpanKind), "none", span.Tags)
 	t.heartbeater.AddCustomTags(tags)
 
-	// add operation and component tag after setting heartbeat tag
+	// add operation tag after setting heartbeat tag
 	tags["operationName"] = span.Operation
-	tags["component"] = span.Component
 
 	errors := t.getCounter(metricName+".error", tags)
 	if isError {
