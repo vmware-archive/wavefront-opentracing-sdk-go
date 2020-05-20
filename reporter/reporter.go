@@ -43,8 +43,12 @@ type reporter struct {
 	spansReceived           metrics.Counter
 	spansDropped            metrics.Counter
 	spansDiscarded          metrics.Counter
-	redMetricsCustomTagKeys []string
+	redMetricsCustomTagKeys map[string]struct{}
 }
+
+var (
+	exists = struct{}{}
+)
 
 // Option allow WavefrontSpanReporter customization
 type Option func(*reporter)
@@ -79,18 +83,21 @@ func LogPercent(percent float32) Option {
 // Custom RED metrics tags
 func RedMetricsCustomTagKeys(redMetricsCustomTagKeys []string) Option {
 	return func(args *reporter) {
-		args.redMetricsCustomTagKeys = redMetricsCustomTagKeys
+		for _, key := range redMetricsCustomTagKeys {
+			args.redMetricsCustomTagKeys[key] = exists
+		}
 	}
 }
 
 // New returns a WavefrontSpanReporter for the given `sender`.
 func New(sender senders.Sender, app application.Tags, setters ...Option) WavefrontSpanReporter {
 	r := &reporter{
-		sender:      sender,
-		source:      hostname(),
-		application: app,
-		logPercent:  0.1,
-		bufferSize:  50000,
+		sender:                  sender,
+		source:                  hostname(),
+		application:             app,
+		logPercent:              0.1,
+		bufferSize:              50000,
+		redMetricsCustomTagKeys: make(map[string]struct{}),
 	}
 
 	for _, setter := range setters {
@@ -240,40 +247,42 @@ func (t *reporter) reportDerivedMetrics(span tracer.RawSpan) {
 	metricName = strings.Replace(metricName, "\"", "\\\"", -1)
 
 	tags := t.application.Map()
-	tags["operationName"] = span.Operation
 	tags["component"] = span.Component
 	replaceTag(tags, "application", appName, appFound)
 	replaceTag(tags, "service", serviceName, svcFound)
 
-	if len(t.redMetricsCustomTagKeys) > 0 {
-		redMetricsCustomTags := make(map[string]string)
-		customTagMatch := false
-		for _, key := range t.redMetricsCustomTagKeys {
-			if value, found := getAppTag(key, "", span.Tags); found {
-				tags[key] = value
-				redMetricsCustomTags[key] = value
-				customTagMatch = true
-			}
-		}
-		if customTagMatch {
-			t.heartbeater.AddCustomTags(redMetricsCustomTags)
+	for key := range t.redMetricsCustomTagKeys {
+		if value, found := getAppTag(key, "", span.Tags); found {
+			tags[key] = value
 		}
 	}
+	err, _ := getAppTag(string(ext.Error), "false", span.Tags)
+	isError := err == "true"
+	// add http status if span has error
+	if value, found := getAppTag(string(ext.HTTPStatusCode), "", span.Tags); found && isError {
+		tags[string(ext.HTTPStatusCode)] = value
+	}
+	// propagate span kind tag by default
+	tags[string(ext.SpanKind)], _ = getAppTag(string(ext.SpanKind), "none", span.Tags)
+	t.heartbeater.AddCustomTags(tags)
 
-	v, found := getAppTag("error", "false", span.Tags)
-	if found && v == "true" {
+	// add operation tag after setting heartbeat tag
+	tags["operationName"] = span.Operation
+
+	errors := t.getCounter(metricName+".error", tags)
+	if isError {
+		errors.Inc(1)
+	}
+	// remove http error status before sending request and duration metrics
+	delete(tags, string(ext.HTTPStatusCode))
+	t.getCounter(metricName+".total_time.millis", tags).Inc(span.Duration.Nanoseconds() / 1000000)
+	t.getCounter(metricName+".invocation", tags).Inc(1)
+	if isError {
 		tagsError := t.copyTags(tags)
 		tagsError["error"] = "true"
 		t.getHistogram(metricName+".duration.micros", tagsError).Update(span.Duration.Nanoseconds() / 1000)
 	} else {
 		t.getHistogram(metricName+".duration.micros", tags).Update(span.Duration.Nanoseconds() / 1000)
-	}
-
-	t.getCounter(metricName+".total_time.millis", tags).Inc(span.Duration.Nanoseconds() / 1000000)
-	t.getCounter(metricName+".invocation", tags).Inc(1)
-	errors := t.getCounter(metricName+".error", tags)
-	if span.Tags[string(ext.Error)] == true {
-		errors.Inc(1)
 	}
 }
 
