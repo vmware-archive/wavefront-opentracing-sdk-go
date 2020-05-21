@@ -238,6 +238,16 @@ This example creates a `WavefrontSpanReporter` that assigns the specified source
 reporter := reporter.New(sender, appTags, reporter.Source("app1.foo.com"))
 ```
 
+#### Add Custom Span-Level RED metrics (Optional)
+
+Optionally, you can add custom span-level tags to propagate RED metrics. See [Custom Span-Level Tags for RED Metrics](https://docs.wavefront.com/trace_data_details.html#custom-span-level-tags-for-red-metrics) for details.
+
+Example:
+
+```go
+reporter := reporter.New(sender, appTags, reporter.RedMetricsCustomTagKeys([2]string{"env", "location"}))
+```
+
 #### Create a CompositeSpanReporter (Optional)
 
 A `CompositeSpanReporter` enables you to chain a `WavefrontSpanReporter` to another reporter, such as a `ConsoleSpanReporter`. A console reporter is useful for debugging.
