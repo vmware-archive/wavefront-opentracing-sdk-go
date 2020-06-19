@@ -259,7 +259,7 @@ func (t *reporter) reportDerivedMetrics(span tracer.RawSpan) {
 	err, _ := getAppTag(string(ext.Error), "false", span.Tags)
 	isError := err == "true"
 	// add http status if span has error
-	if value, found := getAppTag(string(ext.HTTPStatusCode), "", span.Tags); found && isError {
+	if value, found := getAppTag(string(ext.HTTPStatusCode), "", span.Tags); found {
 		tags[string(ext.HTTPStatusCode)] = value
 	}
 	// propagate span kind tag by default
@@ -269,14 +269,13 @@ func (t *reporter) reportDerivedMetrics(span tracer.RawSpan) {
 	// add operation tag after setting heartbeat tag
 	tags["operationName"] = span.Operation
 
-	errors := t.getCounter(metricName+".error", tags)
+	errors := t.getCounter(reporting.DeltaCounterName(metricName+".error"), tags)
 	if isError {
 		errors.Inc(1)
 	}
-	// remove http error status before sending request and duration metrics
-	delete(tags, string(ext.HTTPStatusCode))
-	t.getCounter(metricName+".total_time.millis", tags).Inc(span.Duration.Nanoseconds() / 1000000)
-	t.getCounter(metricName+".invocation", tags).Inc(1)
+
+	t.getCounter(reporting.DeltaCounterName(metricName+".total_time.millis"), tags).Inc(span.Duration.Nanoseconds() / 1000000)
+	t.getCounter(reporting.DeltaCounterName(metricName+".invocation"), tags).Inc(1)
 	if isError {
 		tagsError := t.copyTags(tags)
 		tagsError["error"] = "true"

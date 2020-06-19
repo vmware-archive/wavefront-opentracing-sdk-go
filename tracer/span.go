@@ -7,6 +7,7 @@ import (
 	"github.com/opentracing/opentracing-go"
 	"github.com/opentracing/opentracing-go/ext"
 	"github.com/opentracing/opentracing-go/log"
+	"strings"
 )
 
 // Implements the `Span` interface. Created via tracerImpl (see `wavefront.New()`).
@@ -162,7 +163,22 @@ func (s *spanImpl) FinishWithOptions(opts opentracing.FinishOptions) {
 	}
 
 	if !s.raw.Context.IsSampled() || !*s.raw.Context.Sampled {
-		errd := s.raw.Tags["error"] == true
+		var debugSpan bool
+		if str, ok := s.raw.Tags["debug"].(string); ok {
+			debugSpan = strings.EqualFold(str, "true")
+		} else {
+			debugSpan = s.raw.Tags["debug"] == true
+		}
+		s.raw.Context.Sampled = &debugSpan
+	}
+
+	if !s.raw.Context.IsSampled() || !*s.raw.Context.Sampled {
+		var errd bool
+		if str, ok := s.raw.Tags["error"].(string); ok {
+			errd = strings.EqualFold(str, "true")
+		} else {
+			errd = s.raw.Tags["error"] == true
+		}
 		s.raw.Context.Sampled = &errd
 	}
 	s.tracer.reporter.ReportSpan(s.raw)
