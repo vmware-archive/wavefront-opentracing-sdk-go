@@ -213,7 +213,7 @@ func TestSamplingDebug(t *testing.T) {
 
 	reporter.Reset()
 	span := tracer.StartSpan("x")
-	span.SetTag("debug", true);
+	span.SetTag("debug", true)
 	span.Finish()
 	assert.Equal(t, 1, len(reporter.getSampledSpans()), "debug tag should turn on sampling")
 }
