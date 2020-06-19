@@ -259,7 +259,7 @@ func (t *reporter) reportDerivedMetrics(span tracer.RawSpan) {
 	err, _ := getAppTag(string(ext.Error), "false", span.Tags)
 	isError := err == "true"
 	// add http status if span has error
-	if value, found := getAppTag(string(ext.HTTPStatusCode), "", span.Tags); found && isError {
+	if value, found := getAppTag(string(ext.HTTPStatusCode), "", span.Tags); found {
 		tags[string(ext.HTTPStatusCode)] = value
 	}
 	// propagate span kind tag by default
