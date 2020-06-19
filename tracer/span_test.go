@@ -207,6 +207,17 @@ func TestSamplingError(t *testing.T) {
 	assert.Equal(t, 1, len(reporter.getSampledSpans()), "error tag should turn on sampling")
 }
 
+func TestSamplingDebug(t *testing.T) {
+	reporter := NewInMemoryReporter()
+	tracer := New(reporter, WithSampler(NeverSample{}))
+
+	reporter.Reset()
+	span := tracer.StartSpan("x")
+	span.SetTag("debug", true);
+	span.Finish()
+	assert.Equal(t, 1, len(reporter.getSampledSpans()), "debug tag should turn on sampling")
+}
+
 func TestEmptySpanTag(t *testing.T) {
 	span := spanImpl{}
 	span.SetTag("key", "")

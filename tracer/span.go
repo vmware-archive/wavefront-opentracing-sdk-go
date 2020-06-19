@@ -162,6 +162,11 @@ func (s *spanImpl) FinishWithOptions(opts opentracing.FinishOptions) {
 	}
 
 	if !s.raw.Context.IsSampled() || !*s.raw.Context.Sampled {
+		debugSpan := s.raw.Tags["debug"] == true
+		s.raw.Context.Sampled = &debugSpan
+	}
+
+	if !s.raw.Context.IsSampled() || !*s.raw.Context.Sampled {
 		errd := s.raw.Tags["error"] == true
 		s.raw.Context.Sampled = &errd
 	}
