@@ -29,8 +29,6 @@ github.com/tuvistavie/securerandom v0.0.0-20140719024926-15512123a948 h1:yL0l/u2
 github.com/tuvistavie/securerandom v0.0.0-20140719024926-15512123a948/go.mod h1:a06d/M1pxWi51qiSrfGMHaEydtuXT06nha8N2aNQuXk=
 github.com/wavefronthq/go-metrics-wavefront v1.0.3 h1:9+PCRCpk070YrASfF826GZX+Mokezd4XNtN0kCHsDr8=
 github.com/wavefronthq/go-metrics-wavefront v1.0.3/go.mod h1:ppFcElto2jS+V/arvmtvjCem4LPJ+h+5aaP2+JmdpN4=
-github.com/wavefronthq/wavefront-opentracing-sdk-go v0.9.0 h1:kjEWrxXZUg4ZOJ0schxN7piV5eisJ/aFZVyEU+DaZ5Q=
-github.com/wavefronthq/wavefront-opentracing-sdk-go v0.9.0/go.mod h1:TIsu7YlDK8m0wj4hj3u2hfoJd9Tk7P1ZYpgQ2Meaqus=
 github.com/wavefronthq/wavefront-sdk-go v0.9.8 h1:6U1HW/sovO1ASbjU8f7iEZEKphDEehaDhdZ5nabb550=
 github.com/wavefronthq/wavefront-sdk-go v0.9.8/go.mod h1:JTGsu+KKgxx+GitC65VVdftN2iep1nVpQi/8EGR6v4Y=
 golang.org/x/exp v0.0.0-20180321215751-8460e604b9de/go.mod h1:CJ0aWSM057203Lf6IL+f9T1iT9GByDxfZKAQTCR3kQA=
