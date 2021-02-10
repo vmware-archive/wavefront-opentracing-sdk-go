@@ -127,10 +127,10 @@ func New(sender senders.Sender, app application.Tags, setters ...Option) Wavefro
 		reporting.CustomRegistry(metrics.NewRegistry()),
 	)
 
-	r.spansReceived = r.internalReporter.GetOrRegisterMetric("spans.received", metrics.NewCounter(), nil).(metrics.Counter)
-	r.spansDropped = r.internalReporter.GetOrRegisterMetric("spans.dropped", metrics.NewCounter(), nil).(metrics.Counter)
-	r.spansDiscarded = r.internalReporter.GetOrRegisterMetric("spans.discarded", metrics.NewCounter(), nil).(metrics.Counter)
-	r.errorsCount = r.internalReporter.GetOrRegisterMetric("errors", metrics.NewCounter(), nil).(metrics.Counter)
+	r.spansReceived = r.internalReporter.GetOrRegisterMetric(reporting.DeltaCounterName("spans.received"), metrics.NewCounter(), nil).(metrics.Counter)
+	r.spansDropped = r.internalReporter.GetOrRegisterMetric(reporting.DeltaCounterName("spans.dropped"), metrics.NewCounter(), nil).(metrics.Counter)
+	r.spansDiscarded = r.internalReporter.GetOrRegisterMetric(reporting.DeltaCounterName("spans.discarded"), metrics.NewCounter(), nil).(metrics.Counter)
+	r.errorsCount = r.internalReporter.GetOrRegisterMetric(reporting.DeltaCounterName("errors"), metrics.NewCounter(), nil).(metrics.Counter)
 
 	r.queueSize = r.internalReporter.GetOrRegisterMetric("queue.size", metrics.NewFunctionalGauge(func() int64 {
 		return int64(len(r.spansCh))
