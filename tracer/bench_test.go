@@ -2,11 +2,11 @@ package tracer
 
 import (
 	"bytes"
-	"fmt"
 	"net/http"
 	"testing"
 
-	opentracing "github.com/opentracing/opentracing-go"
+	"github.com/google/uuid"
+	"github.com/opentracing/opentracing-go"
 )
 
 var tags []string
@@ -14,7 +14,7 @@ var tags []string
 func init() {
 	tags = make([]string, 1000)
 	for j := 0; j < len(tags); j++ {
-		tags[j] = fmt.Sprintf("%s", randomID())
+		tags[j] = uuid.New().String()
 	}
 }
 

@@ -8,6 +8,10 @@ import (
 	"github.com/opentracing/opentracing-go"
 )
 
+const (
+	defaultComponent = "none"
+)
+
 // SpanReporter reports completed Spans
 type SpanReporter interface {
 	io.Closer
@@ -31,8 +35,7 @@ type WavefrontTracer struct {
 	lateSamplers  []Sampler
 	reporter      SpanReporter
 
-	jeagerPropagatorTraceIdHeader string
-	jeagerPropagatorBaggagePrefix string
+	generator Generator
 }
 
 // Option allows customizing the WavefrontTracer.
@@ -62,10 +65,17 @@ func WithJaegerPropagator(traceId, baggagePrefix string) Option {
 	}
 }
 
+func WithW3CGenerator() Option {
+	return func(t *WavefrontTracer) {
+		t.generator = NewGeneratorW3C()
+	}
+}
+
 // New creates and returns a WavefrontTracer which defers completed Spans to the given `reporter`.
 func New(reporter SpanReporter, options ...Option) opentracing.Tracer {
 	tracer := &WavefrontTracer{
-		reporter: reporter,
+		reporter:  reporter,
+		generator: NewGeneratorUUID(),
 	}
 
 	tracer.textPropagator = &textMapPropagator{tracer}
@@ -127,14 +137,15 @@ func (t *WavefrontTracer) StartSpan(operationName string, opts ...opentracing.St
 
 	if len(refCtx.TraceID) != 0 {
 		sp.raw.Context.TraceID = refCtx.TraceID
-		sp.raw.Context.SpanID = randomID()
+		sp.raw.Context.SpanID = t.generator.SpanID()
 		sp.raw.Context.Sampled = refCtx.Sampled
 		sp.raw.ParentSpanID = refCtx.SpanID
 
 	} else {
 		// indicates a root span and that no decision has been inherited from a parent span.
 		// allocate new trace and span ids and perform sampling.
-		sp.raw.Context.TraceID, sp.raw.Context.SpanID = randomID2()
+		sp.raw.Context.TraceID = t.generator.TraceID()
+		sp.raw.Context.SpanID = t.generator.SpanID()
 		decision := t.earlySample(sp.raw)
 		sp.raw.Context.Sampled = &decision
 	}
