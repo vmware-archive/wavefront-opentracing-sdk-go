@@ -24,11 +24,17 @@ type Sampler interface {
 	IsEarly() bool
 }
 
+// SpanContextPropagator implements SpanContext propagation to/from another processes.
+type SpanContextPropagator interface {
+	Inject(spanContext opentracing.SpanContext, carrier interface{}) error
+	Extract(carrier interface{}) (opentracing.SpanContext, error)
+}
+
 // WavefrontTracer implements the OpenTracing `Tracer` interface.
 type WavefrontTracer struct {
-	textPropagator            *textMapPropagator
-	binaryPropagator          *binaryPropagator
-	accessorPropagator        *accessorPropagator
+	textPropagator            SpanContextPropagator
+	binaryPropagator          SpanContextPropagator
+	accessorPropagator        SpanContextPropagator
 	jaegerWavefrontPropagator *JaegerWavefrontPropagator
 
 	earlySamplers []Sampler
@@ -68,6 +74,14 @@ func WithJaegerPropagator(traceId, baggagePrefix string) Option {
 func WithW3CGenerator() Option {
 	return func(t *WavefrontTracer) {
 		t.generator = NewGeneratorW3C()
+	}
+}
+
+func WithW3CPropagator() Option {
+	return func(t *WavefrontTracer) {
+		// implies W3C Generator
+		t.generator = NewGeneratorW3C()
+		t.textPropagator = NewW3CPropagator()
 	}
 }
 
