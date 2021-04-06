@@ -13,14 +13,16 @@ const (
 	tracestate  = "tracestate"
 )
 
-type W3CPropagator struct {
+// PropagatorW3C implements trace context propagation according to W3C definition https://www.w3.org/TR/trace-context/
+type PropagatorW3C struct {
 }
 
-func NewW3CPropagator() SpanContextPropagator {
-	return &W3CPropagator{}
+// NewPropagatorW3C creates PropagatorW3C instance.
+func NewPropagatorW3C() SpanContextPropagator {
+	return &PropagatorW3C{}
 }
 
-func (p *W3CPropagator) Inject(spanContext opentracing.SpanContext, opaqueCarrier interface{}) error {
+func (p *PropagatorW3C) Inject(spanContext opentracing.SpanContext, opaqueCarrier interface{}) error {
 	sc, ok := spanContext.(SpanContext)
 	if !ok {
 		return opentracing.ErrInvalidSpanContext
@@ -49,7 +51,7 @@ func (p *W3CPropagator) Inject(spanContext opentracing.SpanContext, opaqueCarrie
 	return nil
 }
 
-func (p *W3CPropagator) Extract(opaqueCarrier interface{}) (opentracing.SpanContext, error) {
+func (p *PropagatorW3C) Extract(opaqueCarrier interface{}) (opentracing.SpanContext, error) {
 	carrier, ok := opaqueCarrier.(opentracing.TextMapReader)
 	if !ok {
 		return nil, opentracing.ErrInvalidCarrier

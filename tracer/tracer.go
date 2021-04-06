@@ -58,6 +58,7 @@ func WithSampler(sampler Sampler) Option {
 	}
 }
 
+// WithJaegerPropagator configures Tracer to use Jaeger trace context propagation.
 func WithJaegerPropagator(traceId, baggagePrefix string) Option {
 	return func(args *WavefrontTracer) {
 		var options []JaegerOption
@@ -71,17 +72,19 @@ func WithJaegerPropagator(traceId, baggagePrefix string) Option {
 	}
 }
 
+// WithW3CGenerator configures Tracer to generate Trace and Span IDs according to W3C spec.
 func WithW3CGenerator() Option {
 	return func(t *WavefrontTracer) {
 		t.generator = NewGeneratorW3C()
 	}
 }
 
+// WithW3CPropagator configures Tracer to use trace context propagation according to W3C spec.
 func WithW3CPropagator() Option {
 	return func(t *WavefrontTracer) {
 		// implies W3C Generator
 		t.generator = NewGeneratorW3C()
-		t.textPropagator = NewW3CPropagator()
+		t.textPropagator = NewPropagatorW3C()
 	}
 }
 

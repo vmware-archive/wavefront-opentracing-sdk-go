@@ -15,8 +15,8 @@ type TestContext struct {
 func (t *TestContext) ForeachBaggageItem(_ func(k, v string) bool) {
 }
 
-func TestW3CPropagator_Inject(t *testing.T) {
-	p := tracer.NewW3CPropagator()
+func TestPropagatorW3C_Inject(t *testing.T) {
+	p := tracer.NewPropagatorW3C()
 
 	// unknown context
 	assert.Error(t, p.Inject(&TestContext{}, nil))
@@ -50,8 +50,8 @@ func TestW3CPropagator_Inject(t *testing.T) {
 	assert.True(t, c["tracestate"] == "k1=v1,k2=v2" || c["tracestate"] == "k2=v2,k1=v1")
 }
 
-func TestW3CPropagator_Extract(t *testing.T) {
-	p := tracer.NewW3CPropagator()
+func TestPropagatorW3C_Extract(t *testing.T) {
+	p := tracer.NewPropagatorW3C()
 
 	// invalid carrier
 	sc, err := p.Extract(nil)
