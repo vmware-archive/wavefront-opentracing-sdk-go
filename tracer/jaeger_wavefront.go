@@ -2,11 +2,11 @@ package tracer
 
 import (
 	"bytes"
-	"errors"
-	"github.com/google/uuid"
-	"github.com/opentracing/opentracing-go"
 	"strconv"
 	"strings"
+
+	"github.com/google/uuid"
+	"github.com/opentracing/opentracing-go"
 )
 
 const (
@@ -65,40 +65,42 @@ func (p *JaegerWavefrontPropagator) Inject(spanContext opentracing.SpanContext,
 		return true
 	})
 	if sc.IsSampled() {
-		carrier.Set(SAMPLING_DECISION_KEY, strconv.FormatBool(sc.IsSampled()))
+		carrier.Set(SAMPLING_DECISION_KEY, strconv.FormatBool(*sc.SamplingDecision()))
 	}
 	return nil
 }
 
-func (p *JaegerWavefrontPropagator) Extract(opaqueCarrier interface{}) (SpanContext,
-	error) {
+func (p *JaegerWavefrontPropagator) Extract(opaqueCarrier interface{}) (spanCtx SpanContext, err error) {
 	carrier, ok := opaqueCarrier.(opentracing.TextMapReader)
 	if !ok {
-		return SpanContext{}, opentracing.ErrInvalidCarrier
+		return spanCtx, opentracing.ErrInvalidCarrier
 	}
 
-	var spanCtx SpanContext
-
-	err := carrier.ForeachKey(func(k, v string) error {
+	baggage := make(map[string]string)
+	err = carrier.ForeachKey(func(k, v string) error {
 		lowercaseK := strings.ToLower(k)
 		if lowercaseK == strings.ToLower(p.traceIdHeader) {
-			err := errors.New("")
 			spanCtx, err = contextFromString(v)
 			if err != nil {
-				return opentracing.ErrSpanContextCorrupted
+				return err
 			}
 		} else if strings.HasPrefix(lowercaseK, strings.ToLower(p.baggagePrefix)) {
-			spanCtx.WithBaggageItem(strings.TrimPrefix(lowercaseK, p.baggagePrefix), v)
+			baggage[k[len(p.baggagePrefix):]] = v
 		}
 		return nil
 	})
 	if err != nil {
-		return SpanContext{}, err
+		return
 	}
+
 	if spanCtx.SpanID == "" || spanCtx.TraceID == "" {
-		return SpanContext{}, opentracing.ErrSpanContextNotFound
+		return spanCtx, opentracing.ErrSpanContextNotFound
 	}
-	return spanCtx, nil
+
+	for k, v := range baggage {
+		spanCtx = spanCtx.WithBaggageItem(k, v)
+	}
+	return
 }
 
 func contextFromString(value string) (SpanContext, error) {
@@ -141,7 +143,7 @@ func contextToTraceIdHeader(spanContext SpanContext) string {
 	b.WriteString(spanContext.Baggage[PARENT_ID_KEY])
 	b.WriteString(":")
 	samplingDecision := "0"
-	if spanContext.IsSampled() {
+	if spanContext.IsSampled() && *spanContext.SamplingDecision() {
 		samplingDecision = "1"
 	}
 	b.WriteString(samplingDecision)
