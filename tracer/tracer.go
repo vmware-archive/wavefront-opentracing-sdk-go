@@ -8,6 +8,10 @@ import (
 	"github.com/opentracing/opentracing-go"
 )
 
+const (
+	defaultComponent = "none"
+)
+
 // SpanReporter reports completed Spans
 type SpanReporter interface {
 	io.Closer
@@ -20,19 +24,24 @@ type Sampler interface {
 	IsEarly() bool
 }
 
+// SpanContextPropagator implements SpanContext propagation to/from another processes.
+type SpanContextPropagator interface {
+	Inject(spanContext opentracing.SpanContext, carrier interface{}) error
+	Extract(carrier interface{}) (opentracing.SpanContext, error)
+}
+
 // WavefrontTracer implements the OpenTracing `Tracer` interface.
 type WavefrontTracer struct {
-	textPropagator            *textMapPropagator
-	binaryPropagator          *binaryPropagator
-	accessorPropagator        *accessorPropagator
+	textPropagator            SpanContextPropagator
+	binaryPropagator          SpanContextPropagator
+	accessorPropagator        SpanContextPropagator
 	jaegerWavefrontPropagator *JaegerWavefrontPropagator
 
 	earlySamplers []Sampler
 	lateSamplers  []Sampler
 	reporter      SpanReporter
 
-	jeagerPropagatorTraceIdHeader string
-	jeagerPropagatorBaggagePrefix string
+	generator Generator
 }
 
 // Option allows customizing the WavefrontTracer.
@@ -49,6 +58,7 @@ func WithSampler(sampler Sampler) Option {
 	}
 }
 
+// WithJaegerPropagator configures Tracer to use Jaeger trace context propagation.
 func WithJaegerPropagator(traceId, baggagePrefix string) Option {
 	return func(args *WavefrontTracer) {
 		var options []JaegerOption
@@ -62,10 +72,27 @@ func WithJaegerPropagator(traceId, baggagePrefix string) Option {
 	}
 }
 
+// WithW3CGenerator configures Tracer to generate Trace and Span IDs according to W3C spec.
+func WithW3CGenerator() Option {
+	return func(t *WavefrontTracer) {
+		t.generator = NewGeneratorW3C()
+	}
+}
+
+// WithW3CPropagator configures Tracer to use trace context propagation according to W3C spec.
+func WithW3CPropagator() Option {
+	return func(t *WavefrontTracer) {
+		// implies W3C Generator
+		t.generator = NewGeneratorW3C()
+		t.textPropagator = NewPropagatorW3C()
+	}
+}
+
 // New creates and returns a WavefrontTracer which defers completed Spans to the given `reporter`.
 func New(reporter SpanReporter, options ...Option) opentracing.Tracer {
 	tracer := &WavefrontTracer{
-		reporter: reporter,
+		reporter:  reporter,
+		generator: NewGeneratorUUID(),
 	}
 
 	tracer.textPropagator = &textMapPropagator{tracer}
@@ -127,14 +154,15 @@ func (t *WavefrontTracer) StartSpan(operationName string, opts ...opentracing.St
 
 	if len(refCtx.TraceID) != 0 {
 		sp.raw.Context.TraceID = refCtx.TraceID
-		sp.raw.Context.SpanID = randomID()
+		sp.raw.Context.SpanID = t.generator.SpanID()
 		sp.raw.Context.Sampled = refCtx.Sampled
 		sp.raw.ParentSpanID = refCtx.SpanID
 
 	} else {
 		// indicates a root span and that no decision has been inherited from a parent span.
 		// allocate new trace and span ids and perform sampling.
-		sp.raw.Context.TraceID, sp.raw.Context.SpanID = randomID2()
+		sp.raw.Context.TraceID = t.generator.TraceID()
+		sp.raw.Context.SpanID = t.generator.SpanID()
 		decision := t.earlySample(sp.raw)
 		sp.raw.Context.Sampled = &decision
 	}
