@@ -25,8 +25,6 @@ github.com/stretchr/objx v0.1.0/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+
 github.com/stretchr/testify v1.5.1/go.mod h1:5W2xD1RspED5o8YsWQXVCued0rvSQ+mT+I5cxcmMvtA=
 github.com/stretchr/testify v1.7.0 h1:nwc3DEeHmmLAfoZucVR881uASk0Mfjw8xYJ99tb5CcY=
 github.com/stretchr/testify v1.7.0/go.mod h1:6Fq8oRcR53rry900zMqJjRRixrwX3KX962/h/Wwjteg=
-github.com/tuvistavie/securerandom v0.0.0-20140719024926-15512123a948 h1:yL0l/u242MzDP6D0B5vGC+wxm5WRY+alQZy+dJk3bFI=
-github.com/tuvistavie/securerandom v0.0.0-20140719024926-15512123a948/go.mod h1:a06d/M1pxWi51qiSrfGMHaEydtuXT06nha8N2aNQuXk=
 github.com/wavefronthq/go-metrics-wavefront v1.0.3 h1:9+PCRCpk070YrASfF826GZX+Mokezd4XNtN0kCHsDr8=
 github.com/wavefronthq/go-metrics-wavefront v1.0.3/go.mod h1:ppFcElto2jS+V/arvmtvjCem4LPJ+h+5aaP2+JmdpN4=
 github.com/wavefronthq/wavefront-sdk-go v0.9.8 h1:6U1HW/sovO1ASbjU8f7iEZEKphDEehaDhdZ5nabb550=
