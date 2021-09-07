@@ -58,6 +58,13 @@ func WithSampler(sampler Sampler) Option {
 	}
 }
 
+// WithGenerator configures Tracer to use a custom trace id generator implementation.
+func WithGenerator(generator Generator) Option {
+	return func(t *WavefrontTracer) {
+		t.generator = generator
+	}
+}
+
 // WithJaegerPropagator configures Tracer to use Jaeger trace context propagation.
 func WithJaegerPropagator(traceId, baggagePrefix string) Option {
 	return func(args *WavefrontTracer) {
@@ -74,15 +81,13 @@ func WithJaegerPropagator(traceId, baggagePrefix string) Option {
 
 // WithW3CGenerator configures Tracer to generate Trace and Span IDs according to W3C spec.
 func WithW3CGenerator() Option {
-	return func(t *WavefrontTracer) {
-		t.generator = NewGeneratorW3C()
-	}
+	return WithGenerator(NewGeneratorW3C())
 }
 
 // WithW3CPropagator configures Tracer to use trace context propagation according to W3C spec.
 func WithW3CPropagator() Option {
 	return func(t *WavefrontTracer) {
-		// implies W3C Generator
+		// implies W3C Generator. Custom ID generators should use WithGenerator after this option.
 		t.generator = NewGeneratorW3C()
 		t.textPropagator = NewPropagatorW3C()
 	}
