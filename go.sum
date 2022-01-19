@@ -27,8 +27,9 @@ github.com/stretchr/testify v1.7.0 h1:nwc3DEeHmmLAfoZucVR881uASk0Mfjw8xYJ99tb5Cc
 github.com/stretchr/testify v1.7.0/go.mod h1:6Fq8oRcR53rry900zMqJjRRixrwX3KX962/h/Wwjteg=
 github.com/wavefronthq/go-metrics-wavefront v1.0.3 h1:9+PCRCpk070YrASfF826GZX+Mokezd4XNtN0kCHsDr8=
 github.com/wavefronthq/go-metrics-wavefront v1.0.3/go.mod h1:ppFcElto2jS+V/arvmtvjCem4LPJ+h+5aaP2+JmdpN4=
-github.com/wavefronthq/wavefront-sdk-go v0.9.8 h1:6U1HW/sovO1ASbjU8f7iEZEKphDEehaDhdZ5nabb550=
 github.com/wavefronthq/wavefront-sdk-go v0.9.8/go.mod h1:JTGsu+KKgxx+GitC65VVdftN2iep1nVpQi/8EGR6v4Y=
+github.com/wavefronthq/wavefront-sdk-go v0.9.9 h1:ufOksviv+Cg6X2BIqha//onx8kJkQWZTYWjXcsLYDN0=
+github.com/wavefronthq/wavefront-sdk-go v0.9.9/go.mod h1:JTGsu+KKgxx+GitC65VVdftN2iep1nVpQi/8EGR6v4Y=
 golang.org/x/exp v0.0.0-20180321215751-8460e604b9de/go.mod h1:CJ0aWSM057203Lf6IL+f9T1iT9GByDxfZKAQTCR3kQA=
 golang.org/x/exp v0.0.0-20180807140117-3d87b88a115f/go.mod h1:CJ0aWSM057203Lf6IL+f9T1iT9GByDxfZKAQTCR3kQA=
 golang.org/x/exp v0.0.0-20190125153040-c74c464bbbf2 h1:y102fOLFqhV41b+4GPiJoa0k/x+pJcEi2/HB1Y5T6fU=
