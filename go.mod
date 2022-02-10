@@ -11,5 +11,5 @@ require (
 	github.com/rcrowley/go-metrics v0.0.0-20201227073835-cf1acfcdf475
 	github.com/stretchr/testify v1.7.0
 	github.com/wavefronthq/go-metrics-wavefront v1.0.3
-	github.com/wavefronthq/wavefront-sdk-go v0.9.9
+	github.com/wavefronthq/wavefront-sdk-go v0.9.10
 )
