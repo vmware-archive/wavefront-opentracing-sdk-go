@@ -36,6 +36,7 @@ type WavefrontTracer struct {
 	binaryPropagator          SpanContextPropagator
 	accessorPropagator        SpanContextPropagator
 	jaegerWavefrontPropagator *JaegerWavefrontPropagator
+	zipkinWavefrontPropagator *ZipkinWavefrontPropagator
 
 	earlySamplers []Sampler
 	lateSamplers  []Sampler
@@ -76,6 +77,13 @@ func WithJaegerPropagator(traceId, baggagePrefix string) Option {
 			options = append(options, WithBaggagePrefix(baggagePrefix))
 		}
 		args.jaegerWavefrontPropagator = NewJaegerWavefrontPropagator(args, options)
+	}
+}
+
+// WithZipkinPropagator configures Tracer to use Zipkin trace context propagation.
+func WithZipkinPropagator(zipkinOptions ...ZipkinOption) Option {
+	return func(args *WavefrontTracer) {
+		args.zipkinWavefrontPropagator = NewZipkinWavefrontPropagator(zipkinOptions...)
 	}
 }
 
@@ -222,6 +230,14 @@ func (t *WavefrontTracer) Inject(sc opentracing.SpanContext, format interface{},
 		}
 		return t.jaegerWavefrontPropagator.Inject(sc, carrier)
 	}
+
+	if _, ok := format.(ZipkinWavefrontPropagator); ok {
+		if t.zipkinWavefrontPropagator == nil {
+			return opentracing.ErrUnsupportedFormat
+		}
+		return t.zipkinWavefrontPropagator.Inject(sc, carrier)
+	}
+
 	switch format {
 	case opentracing.TextMap, opentracing.HTTPHeaders:
 		return t.textPropagator.Inject(sc, carrier)
@@ -241,6 +257,14 @@ func (t *WavefrontTracer) Extract(format interface{}, carrier interface{}) (open
 		}
 		return t.jaegerWavefrontPropagator.Extract(carrier)
 	}
+
+	if _, ok := format.(ZipkinWavefrontPropagator); ok {
+		if t.zipkinWavefrontPropagator == nil {
+			return nil, opentracing.ErrUnsupportedFormat
+		}
+		return t.zipkinWavefrontPropagator.Extract(carrier)
+	}
+
 	switch format {
 	case opentracing.TextMap, opentracing.HTTPHeaders:
 		return t.textPropagator.Extract(carrier)
