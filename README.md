@@ -120,7 +120,6 @@ This is the Wavefront by VMware OpenTracing SDK for Go that provides distributed
 
 ## Prerequisites
 
-* Go 1.9 or higher.
 * Import Wavefront packages.
     ```go
     import (
