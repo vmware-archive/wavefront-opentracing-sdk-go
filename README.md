@@ -1,6 +1,10 @@
 # wavefront-opentracing-sdk-go
 [![build status][ci-img]][ci] [![Go Report Card][go-report-img]][go-report] [![GoDoc][godoc-img]][godoc] [![OpenTracing Badge](https://img.shields.io/badge/OpenTracing-enabled-blue.svg)](http://opentracing.io)
 
+# We are deprecating the repos for OpenTracing and no longer supporting this. Customers can refer to these migration steps to move to OpenTelemetry, 
+# (https://docs.wavefront.com/opentracing_to_opentelemetry_migration.html). Please contact the support team in you have anyquestions 
+# (support@wavefront.com). Thank you.
+
 ## Table of Content
 * [Prerequisites](#Prerequisites)
 * [Usage](#Usage)
